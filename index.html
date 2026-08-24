@@ -265,54 +265,52 @@ summary:before{content:"\2699  "}
 
   <!-- ═════════ PAGAR ═════════ -->
   <section id="sec-pagar" hidden>
-    <h2>Semáforo — úsalo frente al vendedor</h2>
+    <h2>¿Cuánto me están cobrando?</h2>
     <div class="card">
-      <div class="inline" style="margin-bottom:10px">
-        <label class="f" style="margin:0">
-          <span class="lbl">Te cobran (Bs)</span>
-          <input type="text" id="sVes" inputmode="decimal" step="any" placeholder="0" oninput="calcSema()">
+      <label class="f">
+        <span class="lbl">Te cobran</span>
+        <div class="inline">
+          <input type="text" id="xMonto" inputmode="decimal" placeholder="0" oninput="calcPago()">
+          <select id="xMon" onchange="calcPago()" style="flex:0 0 108px"></select>
+        </div>
+      </label>
+      <div class="chips" id="xChips"></div>
+      <div class="inline">
+        <label class="f" style="margin-bottom:8px">
+          <span class="lbl">Precio que dicen (USD)</span>
+          <input type="text" id="xPrecio" inputmode="decimal" placeholder="opcional" oninput="calcPago('precio')">
         </label>
-        <label class="f" style="margin:0">
-          <span class="lbl">Dicen que son (USD)</span>
-          <input type="text" id="sUsd" inputmode="decimal" step="any" placeholder="opcional" oninput="calcSema()">
+        <label class="f" style="margin-bottom:8px">
+          <span class="lbl">…o la tasa que aplican</span>
+          <input type="text" id="xTasa" inputmode="decimal" placeholder="Bs por USD" oninput="calcPago('tasa')">
         </label>
       </div>
-      <div id="semaOut"><div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div></div>
-      <div class="inline" style="margin-top:4px">
-        <input class="txt" type="text" id="sDesc" placeholder="¿Qué es? (opcional)" style="flex:2">
-        <button class="icon prim" style="flex:1" onclick="guardarGasto()">Guardar gasto</button>
+      <div class="hint" style="margin-bottom:4px">
+        Con solo el monto te digo lo que te cuesta. Agrega el precio en dólares que te dijeron
+        y además te digo si se apartan de la tasa del BCV, que es la que la ley les exige.
       </div>
     </div>
 
-    <h2>El desglose completo</h2>
-    <div class="card">
-      <label class="f">
-        <span class="lbl">Monto</span>
-        <div class="inline">
-          <input type="text" id="pMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcPagar()">
-          <select id="pMoneda" onchange="calcPagar()" style="flex:0 0 110px"></select>
-        </div>
-      </label>
-      <div class="chips">
-        <span class="chip" onclick="setMonto(100)">100</span>
-        <span class="chip" onclick="setMonto(500)">500</span>
-        <span class="chip" onclick="setMonto(1000)">1.000</span>
-        <span class="chip" onclick="setMonto(5000)">5.000</span>
-        <span class="chip" onclick="setMonto(10000)">10.000</span>
+    <div id="xSema"></div>
+    <div id="xOut"></div>
+
+    <div class="card" id="xGuardar" hidden>
+      <div class="inline">
+        <input class="txt" type="text" id="xDesc" placeholder="¿Qué es? (opcional)" style="flex:2">
+        <button class="icon prim" style="flex:1" onclick="guardarGasto()">Guardar gasto</button>
       </div>
-      <div id="pOut"><div class="sub">Escribe un monto.</div></div>
     </div>
 
     <h2>Pagar con billetes en efectivo</h2>
     <div class="card">
       <div class="sub" style="margin-bottom:12px">
-        Allá el problema real del efectivo no es la tasa: es <b>el vuelto</b>. Escasean los billetes chicos, así que
-        te devuelven en bolívares a la tasa que ellos quieran, o simplemente no hay cambio.
+        Otro caso distinto: aquí el problema no es la tasa sino <b>el vuelto</b>. Escasean los billetes
+        chicos, así que te devuelven en bolívares a la tasa que ellos quieran, o no hay cambio.
       </div>
       <div class="inline" style="margin-bottom:10px">
         <label class="f" style="margin:0">
           <span class="lbl">La cuenta es</span>
-          <input type="text" id="eMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcEfectivo()">
+          <input type="text" id="eMonto" inputmode="decimal" placeholder="0" oninput="calcEfectivo()">
         </label>
         <label class="f" style="margin:0;flex:0 0 92px">
           <span class="lbl">en</span>
@@ -344,37 +342,15 @@ summary:before{content:"\2699  "}
         </label>
         <label class="f" style="margin-bottom:10px">
           <span class="lbl">Tasa del vuelto en Bs</span>
-          <input type="text" id="eTasaV" inputmode="decimal" step="any" placeholder="auto" oninput="calcEfectivo()">
+          <input type="text" id="eTasaV" inputmode="decimal" placeholder="auto" oninput="calcEfectivo()">
         </label>
       </div>
       <div class="hint" style="margin-bottom:12px">
-        El «premio» es cuánto más te reconocen por el billete físico frente a la tasa P2P. Varía por zona, por
-        billete y por el estado del papel (los rotos o marcados los rechazan) — no hay dato público confiable,
-        así que pregúntalo y anótalo aquí. Déjalo en 0 si te lo reciben a la tasa normal.
+        El «premio» es cuánto más te reconocen por el billete físico frente a la tasa P2P. Varía por zona,
+        por billete y por el estado del papel — no hay dato público confiable, así que pregúntalo y anótalo
+        aquí. Déjalo en 0 si te lo reciben a la tasa normal.
       </div>
       <div id="eOut"><div class="sub">Escribe la cuenta.</div></div>
-    </div>
-
-    <h2>Detector de tasa abusiva</h2>
-    <div class="card">
-      <div class="sub" style="margin-bottom:12px">
-        Precio en dólares que te dijeron + bolívares que te cobran. Te digo qué tasa usó y cuánto te saca de más.
-      </div>
-      <div class="inline" style="margin-bottom:12px">
-        <label class="f" style="margin:0">
-          <span class="lbl">Precio en USD</span>
-          <input type="text" id="tUsd" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('usd')">
-        </label>
-        <label class="f" style="margin:0">
-          <span class="lbl">Cobro en Bs</span>
-          <input type="text" id="tVes" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('ves')">
-        </label>
-      </div>
-      <label class="f">
-        <span class="lbl">…o escribe directo la tasa que dice usar</span>
-        <input type="text" id="tTasa" inputmode="decimal" step="any" placeholder="Bs por USD" oninput="calcTasa('tasa')">
-      </label>
-      <div id="tOut"><div class="sub">Llena dos de los tres campos.</div></div>
     </div>
   </section>
 
@@ -805,7 +781,7 @@ function enlazarNum(id){
     try{ el.setSelectionRange(i,i); }catch(e){}
   });
 }
-var CAMPOS_NUM=['sVes','sUsd','pMonto','tUsd','tVes','tTasa','cMonto','eMonto','eTasaV',
+var CAMPOS_NUM=['xMonto','xPrecio','xTasa','cMonto','eMonto','eTasaV',
                 'gVes','gTasa','mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk',
                 'coMonto','coTasaF','coTasaV','kUsd','kVes','kIng','kIngTasa'];
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
@@ -939,8 +915,8 @@ function llenarSelects(){
   $('selFiat').innerHTML=opts;
   $('selFiat2').innerHTML=opts;
   $('coFiat').innerHTML=opts;
-  $('pMoneda').innerHTML='<option value="ves">Bs</option><option value="usd">USD</option>'+
-    '<option value="fiat">'+F().s+'</option>';
+  $('xMon').innerHTML='<option value="ves">Bs</option><option value="usd">USD</option>'+
+    (MODO==='residente'?'':'<option value="fiat">'+F().s+'</option>');
   $('cDesde').innerHTML='<option value="fiat">'+F().s+'</option><option value="ves">Bs</option>'+
     '<option value="usdt">USDT</option>';
   $('hMoneda').textContent='Desde '+F().n.toLowerCase();
@@ -1089,7 +1065,7 @@ function pintar(){
     if(prev && tc.filter(function(x){return x.k===prev;}).length) $('kTasa').value=prev;
   }
   pintarBcvTodas(); calcConv('usd'); calcRinde();
-  calcSema(); calcPagar(); calcEfectivo(); calcTasa(); calcCambio();
+  calcPago(); calcEfectivo(); calcCambio();
   pintarGastos(); pintarGrafico();
   if(!$('sec-ajustes').hidden) pintarCfg();
 }
@@ -1107,91 +1083,122 @@ function aplicarManual(){
   localStorage.setItem(LS_R,JSON.stringify(R)); pintar();
 }
 
-/* ══════════════════ SEMÁFORO ══════════════════ */
-/* La referencia es el BCV, no tu tasa P2P: la ley obliga a facturar a la tasa oficial.
-   Medir contra tu tasa haría pasar por "justo" un cobro a 935 que legalmente debe ser 784,
-   que es justo donde se te va el descuento por pagar en bolívares. */
-function calcSema(){
-  var v=parseNum($('sVes').value), u=parseNum($('sUsd').value), out=$('semaOut');
-  if(!isFinite(v)||v<=0||!R.vesBid){
-    out.innerHTML='<div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div>'; return; }
-  var fb=fiatPorBs(), bcv=R.bcvUsd, usdReal=v/R.vesBid;
-  var costo = fb? nfiat(v*fb) : nf(usdReal)+' USD';
+/* ══════════════════ PAGAR ══════════════════ */
+/* Una sola entrada. Antes el monto se pedía tres veces (semáforo, desglose y detector)
+   y las tres hacían la misma cuenta. El patrón es el BCV, que es lo que la ley exige
+   facturar; la tasa P2P propia queda como segundo umbral, donde ya se pierde plata. */
 
-  if(isFinite(u)&&u>0 && bcv){
-    var tasa=v/u;
-    var dLegal=(tasa/bcv-1)*100;
-    var vesLegal=u*bcv;                    /* lo que deberían cobrarte */
-    var costoLegal=vesLegal/R.vesBid;      /* en dólares de tu bolsillo */
-    var pierdes=usdReal-costoLegal;
+function chipsPago(){
+  var mon=$('xMon')?$('xMon').value:'ves';
+  var v = mon==='ves'? [100,500,1000,5000,10000]
+        : mon==='usd'? [5,10,20,50,100]
+        : (MONTOS[FIAT]||MONTOS.usd);
+  $('xChips').innerHTML=v.map(function(x){
+    return '<span class="chip" onclick="setPago('+x+')">'+n0(x)+'</span>'; }).join('');
+}
+function setPago(v){ setNum('xMonto',v,0); calcPago(); }
+
+function calcPago(src){
+  var mon=$('xMon').value, m=parseNum($('xMonto').value);
+  var pre=parseNum($('xPrecio').value), tsa=parseNum($('xTasa').value);
+  var sema=$('xSema'), out=$('xOut');
+  chipsPago();
+
+  if(!isFinite(m)||m<=0||!R.vesBid){
+    sema.innerHTML='<div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div>';
+    out.innerHTML=''; $('xGuardar').hidden=true; return;
+  }
+
+  var fb=fiatPorBs(), ves,usd,fia;
+  if(mon==='ves'){ ves=m; }
+  else if(mon==='usd'){ ves=m*R.vesBid; }
+  else { ves=fb? m/fb : null; }
+  if(!ves){ out.innerHTML=''; return; }
+  usd = ves/R.vesBid;                 /* dólares que te salen del bolsillo */
+  fia = fb? ves*fb : null;
+
+  /* precio y tasa se completan entre sí */
+  if(src==='tasa' && isFinite(tsa) && tsa>0){
+    pre=ves/tsa;
+    if(document.activeElement!==$('xPrecio')) setNum('xPrecio',pre,2);
+  } else if(isFinite(pre) && pre>0){
+    tsa=ves/pre;
+    if(document.activeElement!==$('xTasa')) setNum('xTasa',tsa,2);
+  }
+  var hayPrecio = isFinite(pre)&&pre>0&&isFinite(tsa)&&tsa>0;
+  var bcv=R.bcvUsd;
+
+  /* ── semáforo ── */
+  if(hayPrecio && bcv){
+    var dLegal=(tsa/bcv-1)*100, vesLegal=pre*bcv, costoLegal=vesLegal/R.vesBid, pierdes=usd-costoLegal;
     var cls,tit,extra;
     if(dLegal<=2){
       cls='s-good'; tit='TASA CORRECTA';
-      extra='Te están facturando al BCV, como manda la ley. Pagando en bolívares te sale en <b>'+
-            nf(usdReal)+' USD</b> en vez de los '+nf(u)+' USD del precio: te ahorras '+
-            nf(u-usdReal)+' USD.';
-    } else if(tasa<=R.vesBid){
+      extra='Te facturan al BCV, como manda la ley. Pagando en bolívares te sale en <b>'+nf(usd)+
+            ' USD</b> en vez de los '+nf(pre)+' del precio: te ahorras '+nf(pre-usd)+' USD.';
+    } else if(tsa<=R.vesBid){
       cls='s-warn'; tit='POR ENCIMA DEL BCV';
-      extra='Deberían cobrarte <b>'+n0(vesLegal)+' Bs</b> y te cobran '+n0(v)+'. '+
-            'Sigues pagando menos que en efectivo, pero pierdes <b>'+nf(pierdes)+' USD</b> '+
-            'de tu descuento. Puedes pedir que te lo facturen a la tasa del BCV.';
+      extra='Deberían cobrarte <b>'+n0(vesLegal)+' Bs</b> y te cobran '+n0(ves)+'. Sigues pagando menos '+
+            'que en efectivo, pero pierdes <b>'+nf(pierdes)+' USD</b> de tu descuento. Puedes pedir que '+
+            'te lo facturen a la tasa del BCV.';
     } else {
       cls='s-bad'; tit='ABUSIVO';
-      extra='Está por encima del BCV <i>y</i> por encima de lo que te costaron tus bolívares. '+
-            'Deberían cobrarte <b>'+n0(vesLegal)+' Bs</b>: te cobran '+n0(v)+
-            ', o sea <b>'+nf(pierdes)+' USD de más</b>.';
+      extra='Está por encima del BCV <i>y</i> de lo que te costaron tus bolívares. Deberían cobrarte <b>'+
+            n0(vesLegal)+' Bs</b>: te cobran '+n0(ves)+', o sea <b>'+nf(pierdes)+' USD de más</b>.';
     }
-    out.innerHTML='<div class="sema '+cls+'"><div class="st">'+tit+'</div>'+
+    sema.innerHTML='<div class="sema '+cls+'"><div class="st">'+tit+'</div>'+
       '<div class="sp">'+pct(dLegal)+'</div>'+
-      '<div class="ss">sobre la tasa BCV de '+nf(bcv)+'<br>'+
-      'Te aplican <b>'+nf(tasa)+'</b> Bs/USD.<br>'+extra+'<br>'+
-      'Sale de tu bolsillo: <b>'+costo+'</b>.</div></div>';
-    return;
+      '<div class="ss">sobre la tasa BCV de '+nf(bcv)+'<br>Te aplican <b>'+nf(tsa)+'</b> Bs/USD.<br>'+
+      extra+'</div></div>';
+  } else {
+    var equiv = bcv? ves/bcv : null;
+    sema.innerHTML='<div class="sema s-idle" style="border-color:rgba(255,197,61,.4)">'+
+      '<div class="st" style="color:var(--acc);font-size:15px">TE CUESTA</div>'+
+      '<div class="sp" style="color:var(--acc)">'+(fia? nfiat(fia) : nf(usd)+' USD')+'</div>'+
+      '<div class="ss">'+n0(ves)+' Bs = <b>'+nf(usd)+' USD</b> reales, a tu tasa de '+nf(R.vesBid)+' Bs.'+
+      (equiv!=null? '<br>A tasa BCV ese cobro equivale a un precio de <b>'+nf(equiv)+' USD</b>: si el '+
+        'producto vale menos que eso, te están aplicando una tasa por encima de la oficial.':'')+
+      '</div></div>';
   }
 
-  /* sin precio en dólares no hay tasa que juzgar: mostramos el costo y la referencia legal */
-  var equivBcv = bcv? v/bcv : null;
-  out.innerHTML='<div class="sema s-idle" style="border-color:rgba(255,197,61,.4)">'+
-    '<div class="st" style="color:var(--acc);font-size:15px">TE CUESTA</div>'+
-    '<div class="sp" style="color:var(--acc)">'+costo+'</div>'+
-    '<div class="ss">'+n0(v)+' Bs = <b>'+nf(usdReal)+' USD</b> reales, a tu tasa de '+nf(R.vesBid)+' Bs.'+
-    (equivBcv!=null? '<br>A tasa BCV ese cobro corresponde a un precio de <b>'+nf(equivBcv)+
-      ' USD</b>: si el producto vale menos que eso, te están aplicando una tasa por encima de la oficial.' : '')+
-    '<br>Pon el precio en USD que te dicen y te digo cuánto se apartan del BCV.</div></div>';
-}
-
-/* ══════════════════ PAGAR ══════════════════ */
-function setMonto(v){ setNum('pMonto',v,0); calcPagar(); }
-
-function calcPagar(){
-  var m=parseNum($('pMonto').value), mon=$('pMoneda').value, out=$('pOut');
-  if(!isFinite(m)||m<=0||!R.vesBid){ out.innerHTML='<div class="sub">Escribe un monto.</div>'; return; }
-  var fb=fiatPorBs(), ves,usd,fia;
-  if(mon==='ves'){ ves=m; usd=m/R.vesBid; fia=fb?m*fb:null; }
-  else if(mon==='usd'){ usd=m; ves=m*R.vesBid; fia=fb?ves*fb:null; }
-  else { fia=m; ves=fb?m/fb:null; usd=ves?ves/R.vesBid:null; }
-
-  var h='<div style="margin-top:4px">';
-  h+=fila('Bolívares', nf(ves)+' Bs','');
-  h+=fila('Dólares que sales perdiendo', nf(usd)+' USD','a tu tasa real '+nf(R.vesBid));
+  /* ── desglose ── */
+  var h='<div class="card"><div class="lbl" style="margin-bottom:8px">El desglose</div>';
+  h+=fila('En bolívares', n0(ves)+' Bs','');
+  h+=fila('Te sale del bolsillo', nf(usd)+' USD','a tu tasa real de '+nf(R.vesBid));
   if(fia!=null) h+=fila('En '+F().n.toLowerCase(), nfiat(fia),'vía USDT');
-  h+='<div style="height:8px"></div>';
-  if(R.bcvUsd) h+=fila('Visto a BCV Dólar', nf(ves/R.bcvUsd)+' USD','a '+nf(R.bcvUsd));
+  if(bcv) h+=fila('Visto a BCV Dólar', nf(ves/bcv)+' USD','a '+nf(bcv));
   if(R.bcvEur) h+=fila('Visto a BCV Euro', nf(ves/R.bcvEur)+' USD','a '+nf(R.bcvEur));
   h+='</div>';
 
-  var BA=bcvAlta();
-  if(BA&&usd){
-    var usdRef=ves/BA.v, dif=usd-usdRef;
-    h+='<div class="verdict '+(Math.abs(dif/usd)<0.02?'v-good':'v-warn')+'" style="margin:14px 0 0">'+
-      '<div class="vt">Te cuesta '+nf(usd)+' USD de tu bolsillo</div>'+
-      '<div class="vs">Con la oficial más alta ('+BA.n+', '+nf(BA.v)+') ese mismo cobro se ve como '+
-      nf(usdRef)+' USD. '+(dif>0.005
-        ? 'La diferencia de '+nf(dif)+' USD la absorbes tú, porque tus bolívares te salieron a '+nf(R.vesBid)+'.'
-        : (dif<-0.005 ? 'Te favorece: '+nf(-dif)+' USD menos que la referencia oficial.'
-                      : 'Coincide con la referencia oficial.'))+'</div></div>';
+  if(hayPrecio){
+    var dP2P=(tsa/R.vesBid-1)*100, A=alta();
+    h+='<div class="card"><div class="lbl" style="margin-bottom:8px">La tasa que te aplican: '+nf(tsa)+' Bs</div>';
+    if(bcv) h+='<div class="row"><div class="k">vs BCV Dólar '+nf(bcv)+'</div><div class="v" style="color:'+
+      ((tsa/bcv-1)*100>2?'var(--bad)':'var(--good)')+'">'+pct((tsa/bcv-1)*100)+
+      '<small>la tasa que la ley les exige</small></div></div>';
+    h+='<div class="row"><div class="k">vs lo que te costaron tus Bs '+nf(R.vesBid)+'</div>'+
+      '<div class="v" style="color:'+(dP2P>2?'var(--bad)':'var(--good)')+'">'+pct(dP2P)+'</div></div>';
+    if(R.bcvEur) h+=fila('vs BCV Euro '+nf(R.bcvEur), pct((tsa/R.bcvEur-1)*100),'');
+    if(A && A.k!=='p2p' && A.k!=='usd') h+=fila('vs la más alta ('+A.n+')', pct((tsa/A.v-1)*100),'');
+    if(bcv) h+='<div class="row"><div class="k">Precio facturado al BCV</div>'+
+      '<div class="v" style="color:var(--good)">'+n0(pre*bcv)+' Bs<small>es lo que puedes pedir</small></div></div>';
+    h+=fila('Tope antes de perder plata', n0(pre*R.vesBid)+' Bs',
+      'por encima de eso te sale más caro que pagar en efectivo');
+    h+=fila('Por cada 100 USD de compra pierdes', nf(Math.max(0,100*tsa/R.vesBid-100))+' USD','');
+    h+='</div>';
   }
   out.innerHTML=h;
+  $('xGuardar').hidden=false;
+}
+
+function guardarGasto(){
+  var mon=$('xMon').value, m=parseNum($('xMonto').value), fb=fiatPorBs(), ves;
+  if(mon==='ves') ves=m; else if(mon==='usd') ves=m*R.vesBid; else ves=fb? m/fb : null;
+  var tsa=parseNum($('xTasa').value);
+  if(pushGasto(ves,tsa,$('xDesc').value.trim())){
+    $('xMonto').value=''; $('xPrecio').value=''; $('xTasa').value=''; $('xDesc').value='';
+    calcPago(); tab('gastos');
+  }
 }
 
 /* ══════════════════ EFECTIVO EN DÓLARES ══════════════════ */
@@ -1266,68 +1273,6 @@ function calcEfectivo(){
   out.innerHTML=h;
 }
 
-/* ══════════════════ DETECTOR ══════════════════ */
-function calcTasa(src){
-  var u=parseNum($('tUsd').value), v=parseNum($('tVes').value), t=parseNum($('tTasa').value);
-  var out=$('tOut'), tasa=null, usd=null, ves=null;
-
-  if(isFinite(u)&&u>0&&isFinite(v)&&v>0&&src!=='tasa'){
-    tasa=v/u; usd=u; ves=v;
-    if(document.activeElement!==$('tTasa')) setNum('tTasa',tasa,2);
-  } else if(isFinite(t)&&t>0){
-    tasa=t;
-    if(isFinite(u)&&u>0){ usd=u; ves=u*t;
-      if(src==='tasa'&&document.activeElement!==$('tVes')) setNum('tVes',ves,2); }
-    else if(isFinite(v)&&v>0){ ves=v; usd=v/t;
-      if(src==='tasa'&&document.activeElement!==$('tUsd')) setNum('tUsd',usd,2); }
-  }
-  if(!tasa||!R.vesBid){ out.innerHTML='<div class="sub">Llena dos de los tres campos.</div>'; return; }
-
-  var dP2P=(tasa/R.vesBid-1)*100, A=alta(), fb=fiatPorBs(), cls,tit;
-  var dLegal = R.bcvUsd? (tasa/R.bcvUsd-1)*100 : null;
-  /* el patrón es el BCV, que es lo que la ley exige facturar; tu tasa P2P marca
-     el punto donde además empiezas a perder plata de verdad */
-  if(dLegal==null){
-    if(dP2P>8){ cls='v-bad'; tit='Tasa abusiva'; }
-    else if(dP2P>2){ cls='v-warn'; tit='Te cargan de más'; }
-    else { cls='v-good'; tit='Tasa razonable'; }
-  } else if(dLegal<=2){ cls='v-good'; tit='Tasa correcta, es la del BCV'; }
-  else if(tasa<=R.vesBid){ cls='v-warn'; tit='Por encima del BCV'; }
-  else { cls='v-bad'; tit='Tasa abusiva'; }
-
-  var h='<div class="verdict '+cls+'"><div class="vt">'+tit+' · '+nf(tasa)+' Bs/USD</div><div class="vs">';
-  if(dLegal!=null){
-    h+='Está '+pct(dLegal)+' respecto al BCV ('+nf(R.bcvUsd)+' Bs), que es la tasa a la que la ley '+
-       'les exige facturar. ';
-  }
-  h+='Contra lo que te costaron tus bolívares ('+nf(R.vesBid)+') está '+pct(dP2P)+'.';
-  if(usd){
-    var usdReal=ves/R.vesBid, sobre=usdReal-usd;
-    h+=' Pagas '+nf(usdReal)+' USD por algo marcado en '+nf(usd)+' USD → <b>'+
-       nf(Math.abs(sobre))+' USD '+(sobre>=0?'de más':'de menos')+'</b>.';
-    if(R.bcvUsd){
-      var legalUsd=(usd*R.bcvUsd)/R.vesBid;
-      h+=' Facturado al BCV te habría salido en '+nf(legalUsd)+' USD.';
-    }
-  }
-  h+='</div></div><div class="card flat" style="margin-bottom:0">';
-  if(R.bcvUsd) h+='<div class="row"><div class="k">vs BCV Dólar '+nf(R.bcvUsd)+'</div>'+
-     '<div class="v" style="color:'+(dLegal>2?'var(--bad)':'var(--good)')+'">'+pct(dLegal)+
-     '<small>la tasa que la ley les exige</small></div></div>';
-  h+='<div class="row"><div class="k">vs lo que te costaron tus Bs '+nf(R.vesBid)+'</div><div class="v" style="color:'+
-     (dP2P>2?'var(--bad)':'var(--good)')+'">'+pct(dP2P)+'</div></div>';
-  if(usd && R.bcvUsd) h+='<div class="row"><div class="k">Precio facturado al BCV</div>'+
-     '<div class="v" style="color:var(--good)">'+n0(usd*R.bcvUsd)+' Bs<small>es lo que puedes pedir</small></div></div>';
-  if(R.bcvEur) h+=fila('vs BCV Euro '+nf(R.bcvEur), pct((tasa/R.bcvEur-1)*100),'');
-  if(A && A.k!=='p2p') h+=fila('vs la más alta ('+A.n+')', pct((tasa/A.v-1)*100),'');
-  h+=fila('Por cada 100 USD de compra pierdes', nf(Math.max(0,100*tasa/R.vesBid-100))+' USD','');
-  if(ves&&fb) h+=fila('Ese cobro en '+F().s, nfiat(ves*fb),'');
-  if(usd) h+=fila('Tope antes de perder plata', n0(usd*R.vesBid)+' Bs',
-     'por encima de eso te sale más caro que pagar en efectivo');
-  h+='</div>';
-  out.innerHTML=h;
-}
-
 /* ══════════════════ CAMBIAR ══════════════════ */
 function setCambio(v){ setNum('cMonto',v,0); calcCambio(); }
 
@@ -1381,13 +1326,6 @@ function pushGasto(ves,tasa,desc){
             tasa:(isFinite(tasa)&&tasa>0)?tasa:null, desc:desc||'',
             vesBid:R.vesBid||null, fiatAsk:R.fiatAsk||null, fiat:FIAT });
   localStorage.setItem(LS_G,JSON.stringify(GA)); pintarGastos(); return true;
-}
-function guardarGasto(){
-  var v=parseNum($('sVes').value), u=parseNum($('sUsd').value);
-  var tasa=(isFinite(u)&&u>0&&isFinite(v))? v/u : null;
-  if(pushGasto(v,tasa,$('sDesc').value.trim())){
-    $('sVes').value=''; $('sUsd').value=''; $('sDesc').value=''; calcSema(); tab('gastos');
-  }
 }
 function guardarGastoManual(){
   if(pushGasto(parseNum($('gVes').value), parseNum($('gTasa').value), $('gDesc').value.trim())){

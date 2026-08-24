@@ -17,7 +17,7 @@ Responde cuatro preguntas:
 | | |
 |---|---|
 | **Tasas** | Cotizaciones del día al estilo monitordolarvzla, brechas y tabla de bolsillo |
-| **Pagar** | Semáforo de sobreprecio, desglose, pago con billetes en efectivo y detector de tasa abusiva |
+| **Pagar** | Un solo monto: semáforo, desglose y análisis de la tasa. Aparte, el pago con billetes |
 | **Cambiar** | La ruta completa: tu moneda → USDT → bolívares, comparada contra las tasas oficiales |
 | **Gastos** | Saldo real: compras con su tasa, gastos descontados y sobreprecio acumulado, exportable a CSV |
 | **Calcular** | Solo en modo residente: conversor con copiar, las 5 monedas del BCV, tasa de cualquier fecha |
@@ -50,6 +50,9 @@ sus propias lecturas, que siempre pisan a la semilla.
 
 ## Notas de diseño
 
+- **Una sola entrada en Pagar**: antes el monto se pedía tres veces (semáforo, desglose y detector) y las
+  tres hacían la misma cuenta. Ahora un campo alimenta todo; el precio en USD es opcional y desbloquea el
+  análisis de la tasa. El pago con billetes sigue aparte porque es otra pregunta: ahí el problema es el vuelto.
 - **El patrón es el BCV, no tu tasa P2P**: el semáforo y el detector miden contra el BCV, porque es la tasa
   que la ley exige facturar. Medir contra la propia tasa P2P haría pasar por "justo" un cobro a 935 que
   legalmente debe ser 784 — que es exactamente donde se pierde el descuento de pagar en bolívares. La tasa
