@@ -196,7 +196,12 @@ summary:before{content:"\2699  "}
       <div id="monitor"><div class="sub" style="padding:6px">—</div></div>
       <div class="hint" style="padding:2px 4px 0">
         El «promedio» se calcula como lo publica monitordolarvzla: BCV Dólar, Binance P2P y Bybit P2P entre 3.
-        Sus cifras pueden variar un poco porque filtran las órdenes P2P a su manera.
+        Sus cifras pueden variar un poco porque filtran las órdenes P2P a su manera.<br><br>
+        <b>Sobre el euro paralelo:</b> no es un mercado aparte. En Venezuela no hay un libro de órdenes de
+        euros contra bolívares con volumen propio, así que ese número sale de multiplicar el dólar paralelo
+        por el cruce EUR/USD del día. Existe y se publica, pero es aritmética sobre el dólar. Por eso la app
+        también lo muestra llevado a dólares: comparado así deja de parecer altísimo, y se ve el riesgo real,
+        que es que te lo apliquen a un precio marcado en dólares.
       </div>
     </div>
 
@@ -298,14 +303,24 @@ summary:before{content:"\2699  "}
           <select id="eMon" onchange="calcEfectivo()"><option value="ves">Bs</option><option value="usd">USD</option></select>
         </label>
       </div>
-      <label class="f">
-        <span class="lbl">Pagas con billetes de</span>
-        <select id="eBillete" onchange="calcEfectivo()">
-          <option value="1">1 USD</option><option value="5">5 USD</option>
-          <option value="10">10 USD</option><option value="20" selected>20 USD</option>
-          <option value="50">50 USD</option><option value="100">100 USD</option>
-        </select>
-      </label>
+      <div class="inline">
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">Pagas con billetes de</span>
+          <select id="eBillete" onchange="calcEfectivo()">
+            <option value="1">1</option><option value="5">5</option>
+            <option value="10">10</option><option value="20" selected>20</option>
+            <option value="50">50</option><option value="100">100</option>
+            <option value="200">200</option><option value="500">500</option>
+          </select>
+        </label>
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">Moneda del billete</span>
+          <select id="eDivisa" onchange="calcEfectivo()">
+            <option value="usd">Dólares</option>
+            <option value="eur">Euros</option>
+          </select>
+        </label>
+      </div>
       <div class="inline">
         <label class="f" style="margin-bottom:10px">
           <span class="lbl">Premio del efectivo (%)</span>
@@ -624,7 +639,7 @@ var FIAT = localStorage.getItem(LS_F) || 'clp';
 if(!FIATS[FIAT]) FIAT='clp';
 
 var R = JSON.parse(localStorage.getItem(LS_R)||'null') || {
-  bcvUsd:null, bcvEur:null, paralelo:null,
+  bcvUsd:null, bcvEur:null, paralelo:null, paraleloEur:null, eurUsd:null,
   vesBid:null, vesAsk:null, bybit:null,
   fiatAsk:null, fiatBid:null, fiatCode:FIAT,
   otros:[], ts:null, manual:false
@@ -694,11 +709,16 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
 
 function candidatas(){
   var c=[];
-  if(R.bcvUsd) c.push({n:'BCV Dólar', v:R.bcvUsd, k:'usd'});
-  if(R.bcvEur) c.push({n:'BCV Euro',  v:R.bcvEur, k:'eur'});
-  if(R.vesBid) c.push({n:'Binance P2P', v:R.vesBid, k:'p2p'});
+  if(R.bcvUsd)      c.push({n:'BCV Dólar',     v:R.bcvUsd,      k:'usd'});
+  if(R.bcvEur)      c.push({n:'BCV Euro',      v:R.bcvEur,      k:'eur'});
+  if(R.paralelo)    c.push({n:'Dólar paralelo',v:R.paralelo,    k:'usdp'});
+  if(R.paraleloEur) c.push({n:'Euro paralelo', v:R.paraleloEur, k:'eurp'});
+  if(R.vesBid)      c.push({n:'Binance P2P',   v:R.vesBid,      k:'p2p'});
   return c;
 }
+/* el euro cotiza por EURO, no por dolar. Para comparar contra un precio en USD
+   hay que dividir por el EUR/USD del dia, si no se compara peras con manzanas. */
+function eurEnUsd(v){ return (v && R.eurUsd)? v/R.eurUsd : null; }
 function alta(){ var c=candidatas(); if(!c.length) return null;
   return c.reduce(function(a,b){return b.v>a.v?b:a;}); }
 /* la más alta SOLO entre las oficiales: referencia para medir la brecha */
@@ -733,7 +753,9 @@ function cargar(){
     if(d){ var of=d.filter(function(x){return x.fuente==='oficial';})[0];
            var pa=d.filter(function(x){return x.fuente==='paralelo';})[0];
            if(of) R.bcvUsd=of.promedio; if(pa) R.paralelo=pa.promedio; }
-    if(e){ var oe=e.filter(function(x){return x.fuente==='oficial';})[0]; if(oe) R.bcvEur=oe.promedio; }
+    if(e){ var oe=e.filter(function(x){return x.fuente==='oficial';})[0];
+           var pe=e.filter(function(x){return x.fuente==='paralelo';})[0];
+           if(oe) R.bcvEur=oe.promedio; if(pe) R.paraleloEur=pe.promedio; }
     /* bcv.today como respaldo/confirmación del oficial */
     if(bt){ if(!R.bcvUsd && bt.USD) R.bcvUsd=bt.USD; if(!R.bcvEur && bt.EUR) R.bcvEur=bt.EUR; }
     if(!d && !bt) fallas.push('BCV dólar');
@@ -757,6 +779,7 @@ function cargar(){
     if(fx && fx.rates){
       R.fxFiat = fx.rates[F().s] || null;
       R.fxTs = fx.time_last_update_utc || null;
+      R.eurUsd = fx.rates.EUR? (1/fx.rates.EUR) : null;   /* dólares por euro */
     }
 
     if(fallas.length){
@@ -834,6 +857,9 @@ function pintar(){
     var golpe=(A.v/R.vesBid-1)*100;
     $('altaSub').innerHTML='De las tres referencias que usan los comercios (BCV Dólar, BCV Euro y Binance P2P), '+
       'hoy la más alta es <b>'+A.n+'</b>. Es la que van a querer aplicarte.<br>'+
+      ((A.k==='eurp'||A.k==='eur')&&R.eurUsd
+        ? 'Ojo: esa es una tasa <b>por euro</b>. Si te la aplican a un precio en dólares, te están '+
+          'cobrando como si tus dólares fueran euros.<br>' : '')+
       (golpe>0.5
         ? '<span style="color:var(--bad)">Cobrarte a esa tasa te sale '+pct(golpe)+' más caro que tu tasa real de Binance.</span>'
         : (golpe<-0.5
@@ -842,12 +868,17 @@ function pintar(){
   } else $('altaSub').textContent='—';
 
   var prom=promedioMonitor(), maxV=A?A.v:0;
+  var eqEurP=eurEnUsd(R.paraleloEur), eqEurB=eurEnUsd(R.bcvEur);
   var filas=[
-    {n:'Dólar BCV',      e:'oficial',                    v:R.bcvUsd, c:'#e5e7eb'},
-    {n:'Binance P2P',    e:'venta de USDT',              v:R.vesBid, c:'#f0b90b'},
-    {n:'Bybit P2P',      e:'venta de USDT',              v:R.bybit,  c:'#f7a600'},
-    {n:'Dólar Promedio', e:'BCV + Binance + Bybit ÷ 3',  v:prom,     c:'#34d399', noTop:true},
-    {n:'Euro BCV',       e:'oficial',                    v:R.bcvEur, c:'#93c5fd'}
+    {n:'Dólar BCV',      e:'oficial',                    v:R.bcvUsd,      c:'#e5e7eb'},
+    {n:'Dólar paralelo', e:'mercado, por dólar',         v:R.paralelo,    c:'#fca5a5'},
+    {n:'Binance P2P',    e:'venta de USDT',              v:R.vesBid,      c:'#f0b90b'},
+    {n:'Bybit P2P',      e:'venta de USDT',              v:R.bybit,       c:'#f7a600'},
+    {n:'Dólar Promedio', e:'BCV + Binance + Bybit ÷ 3',  v:prom,          c:'#34d399', noTop:true},
+    {n:'Euro BCV',       e:'oficial, por euro'+(eqEurB?' · '+nf(eqEurB)+' por dólar':''),
+                                                         v:R.bcvEur,      c:'#93c5fd'},
+    {n:'Euro paralelo',  e:'mercado, por euro'+(eqEurP?' · '+nf(eqEurP)+' por dólar':''),
+                                                         v:R.paraleloEur, c:'#a78bfa'}
   ];
   $('monitor').innerHTML = filas.map(function(f){
     var top = !f.noTop && f.v && Math.abs(f.v-maxV)<1e-9;
@@ -870,6 +901,16 @@ function pintar(){
   if(BA) hb+=fila('Binance vs la oficial más alta ('+BA.n+')', pct(g(R.vesBid,BA.v)),
         'esta es la brecha que importa');
   hb+=fila('Binance vs promedio monitor', pct(g(R.vesBid,prom)),'');
+  if(R.paralelo) hb+=fila('Dólar paralelo vs BCV Dólar', pct(g(R.paralelo,R.bcvUsd)),'');
+  if(R.paraleloEur){
+    hb+=fila('Euro paralelo sobre BCV Euro', pct(g(R.paraleloEur,R.bcvEur)),'');
+    var eq=eurEnUsd(R.paraleloEur);
+    if(eq && R.vesBid) hb+=fila('Euro paralelo llevado a dólares', nf(eq)+' Bs',
+      'comparado así está '+pct((eq/R.vesBid-1)*100)+' vs Binance');
+    if(R.vesBid) hb+='<div class="row"><div class="k">Si te lo aplican a un precio en USD</div>'+
+      '<div class="v" style="color:var(--bad)">'+pct((R.paraleloEur/R.vesBid-1)*100)+
+      '<small>ese es el sobreprecio</small></div></div>';
+  }
   hb+=fila('Spread P2P (compra vs venta)', pct(g(R.vesAsk,R.vesBid)),'cuánto pierdes si compras y vendes');
   $('brechas').innerHTML=hb;
 
@@ -997,55 +1038,71 @@ function calcPagar(){
 function calcEfectivo(){
   var m=parseNum($('eMonto').value), mon=$('eMon').value, out=$('eOut');
   var bil=parseFloat($('eBillete').value), prem=(parseFloat($('ePrem').value)||0)/100;
-  var tv=parseNum($('eTasaV').value);
+  var tv=parseNum($('eTasaV').value), div=$('eDivisa').value;
   if(!isFinite(m)||m<=0||!R.vesBid){ out.innerHTML='<div class="sub">Escribe la cuenta.</div>'; return; }
 
-  var tasaEfec = R.vesBid*(1+prem);          // Bs que te reconocen por 1 USD en billete
+  var UNI = (div==='eur')?'EUR':'USD';
+  /* aUsd: cuántos dólares reales vale una unidad de esa divisa. Sirve para medir
+     todo en la misma vara, porque tu costo lo pagas en dólares vía USDT. */
+  var aUsd = (div==='eur')? (R.eurUsd||1) : 1;
+  /* base: Bs que te reconocen por un billete. El euro se cotiza contra el euro paralelo,
+     que no es un mercado aparte sino el dólar paralelo por el cruce EUR/USD. */
+  var base = (div==='eur')
+    ? (R.paraleloEur || R.vesBid*aUsd)
+    : R.vesBid;
+  var tasaEfec = base*(1+prem);
   var tasaVuelto = (isFinite(tv)&&tv>0)? tv : tasaEfec;
-  var ves = (mon==='ves')? m : m*tasaEfec;   // la cuenta llevada a Bs
-  var usdNec = ves/tasaEfec;
-  var nBil = Math.ceil(usdNec/bil);
+
+  var ves = (mon==='ves')? m : m*tasaEfec;
+  var nec = ves/tasaEfec;                 /* unidades de la divisa que cubren la cuenta */
+  var nBil = Math.ceil(nec/bil);
   var entregado = nBil*bil;
-  var vueltoUsd = entregado - usdNec;
-  var vueltoVes = vueltoUsd*tasaVuelto;
+  var vuelto = entregado - nec;           /* en unidades de la divisa */
+  var vueltoVes = vuelto*tasaVuelto;
+
+  /* todo llevado a dólares reales para poder sumarlo con tu costo */
+  var costoUsd = nec*aUsd;
+  var recuperoUsd = vueltoVes/R.vesBid;
+  var perdida = vuelto>0 ? (vuelto*aUsd - recuperoUsd) : 0;
+  var costoTotal = costoUsd + Math.max(0,perdida);
   var fb=fiatPorBs();
 
-  /* lo que pierdes si el vuelto viene en Bs a una tasa peor que tu tasa real */
-  var perdida = vueltoUsd>0 ? vueltoUsd - (vueltoVes/R.vesBid) : 0;
-  var costoTotal = usdNec + Math.max(0,perdida);
-
   var h='';
-  if(vueltoUsd<0.01){
+  if(vuelto<0.01){
     h+='<div class="verdict v-good"><div class="vt">Pago exacto</div>'+
-       '<div class="vs">'+nBil+' billete'+(nBil>1?'s':'')+' de '+bil+' USD cubren la cuenta sin vuelto.</div></div>';
+       '<div class="vs">'+nBil+' billete'+(nBil>1?'s':'')+' de '+bil+' '+UNI+
+       ' cubren la cuenta sin vuelto.</div></div>';
   } else {
-    var grave = perdida/usdNec > 0.03;
+    var grave = perdida/Math.max(costoUsd,0.01) > 0.03;
     h+='<div class="verdict '+(grave?'v-bad':'v-warn')+'">'+
-      '<div class="vt">Te queda '+nf(vueltoUsd)+' USD de vuelto</div>'+
-      '<div class="vs">Entregas '+nBil+' × '+bil+' USD = '+nf(entregado)+' USD por una cuenta de '+
-      nf(usdNec)+' USD.'+
+      '<div class="vt">Te queda '+nf(vuelto)+' '+UNI+' de vuelto</div>'+
+      '<div class="vs">Entregas '+nBil+' × '+bil+' '+UNI+' = '+nf(entregado)+' '+UNI+
+      ' por una cuenta de '+nf(nec)+' '+UNI+'.'+
       (perdida>0.005
-        ? ' Si te devuelven en bolívares a '+nf(tasaVuelto)+', recuperas solo '+nf(vueltoVes/R.vesBid)+
+        ? ' Si te devuelven en bolívares a '+nf(tasaVuelto)+', recuperas solo '+nf(recuperoUsd)+
           ' USD de ese vuelto: <b>pierdes '+nf(perdida)+' USD</b>.'
         : ' A esa tasa el vuelto no te castiga.')+
-      ' Si no tienen cambio y lo pierdes entero, son '+nf(vueltoUsd)+' USD.</div></div>';
+      ' Si no tienen cambio y lo pierdes entero, son '+nf(vuelto*aUsd)+' USD.</div></div>';
   }
 
   h+='<div class="card flat" style="margin-bottom:0">';
   h+=fila('La cuenta en bolívares', n0(ves)+' Bs','');
   h+=fila('Tasa que te reconocen por el billete', nf(tasaEfec)+' Bs',
-      prem? pct(prem*100)+' sobre tu tasa P2P' : 'igual a tu tasa P2P');
-  h+=fila('Dólares que cubre la cuenta', nf(usdNec)+' USD','');
-  h+=fila('Billetes a entregar', nBil+' × '+bil+' USD = '+nf(entregado)+' USD','');
-  if(vueltoUsd>=0.01){
-    h+=fila('Vuelto que te deben', nf(vueltoUsd)+' USD', n0(vueltoVes)+' Bs a '+nf(tasaVuelto));
+      'por cada '+UNI+(prem? ' · '+pct(prem*100)+' de premio' : ''));
+  h+=fila(UNI+' que cubren la cuenta', nf(nec)+' '+UNI,
+      div==='eur'? 'son '+nf(costoUsd)+' USD reales' : '');
+  h+=fila('Billetes a entregar', nBil+' × '+bil+' '+UNI+' = '+nf(entregado)+' '+UNI,'');
+  if(vuelto>=0.01){
+    h+=fila('Vuelto que te deben', nf(vuelto)+' '+UNI, n0(vueltoVes)+' Bs a '+nf(tasaVuelto));
     h+='<div class="row"><div class="k">Costo real de la compra</div><div class="v" style="color:'+
        (perdida>0.005?'var(--bad)':'var(--good)')+'">'+nf(costoTotal)+' USD'+
        (fb?'<small>'+nfiat(costoTotal*R.vesBid*fb)+'</small>':'')+'</div></div>';
   }
   h+='</div>';
-  h+='<div class="hint">Con el premio en 0 la app asume que el billete vale lo mismo que un USDT. '+
-     'Si allá te ofrecen más por el efectivo, sube el premio y vuelve a mirar el número.</div>';
+
+  h+='<div class="hint">Con el premio en 0 el billete vale lo mismo que un USDT'+
+     (div==='eur'? ' llevado a euros por el cruce EUR/USD ('+nf(aUsd,4)+' USD por euro)':'')+
+     '. Si allá te reconocen más por el efectivo, sube el premio y vuelve a mirar el número.</div>';
   out.innerHTML=h;
 }
 

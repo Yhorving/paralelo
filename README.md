@@ -27,18 +27,23 @@ Responde tres preguntas:
 | P2P en bolívares | `criptoya.com/api/usdt/ves` | Binance, Bybit, OKX, Bitget y más |
 | P2P en tu moneda | `criptoya.com/api/usdt/<fiat>` | 13 monedas |
 | Dolar oficial FX | `open.er-api.com` | el mismo USD/xxx que grafica TradingView |
-| Semilla P2P | `seed-p2p.json` | 8 dias de usdt.com.ve (CC BY 4.0), una sola vez |
+| Semilla P2P | `seed-p2p.json` | 218 dias de usdt.com.ve (CC BY 4.0), export completo |
 
 Todas son gratis, sin llave y con CORS abierto: la app las consulta directo desde el navegador, no hay servidor.
 
-No existe API pública gratuita del histórico del P2P — [p2p.army](https://p2p.army/es/p2p/fiats/VES/charts/USDT)
-lo tiene pero su API es de pago, y una llave metida en una página estática queda a la vista. Por eso la app
-acumula sus propias lecturas: cada vez que la abres guarda la tasa del día.
+No hay API gratuita en vivo del histórico del P2P: [p2p.army](https://p2p.army/es/p2p/fiats/VES/charts/USDT)
+la cobra, y usdt.com.ve no expone CORS ni publica más de 7 días al cliente. Lo que sí publica es un export
+completo del dataset, que va en `seed-p2p.json` (17-ene-2026 a 24-ago-2026). De ahí en adelante la app acumula
+sus propias lecturas, que siempre pisan a la semilla.
 
 ## Notas de diseño
 
 - **`alta()` vs `bcvAlta()`**: la primera es la más alta de las tres (lo que te cobran); la segunda solo entre
   las oficiales (para medir la brecha). Confundirlas hace que la app se compare contra sí misma.
+- **Euro paralelo**: existe y se publica, pero no es un mercado aparte — no hay libro de órdenes EUR/VES con
+  volumen propio. Sale de multiplicar el dólar paralelo por el cruce EUR/USD (verificado: 923,10 × 1,1644 =
+  1.074,83). Entra como candidata porque un comercio puede aplicarlo, y se muestra también llevado a dólares
+  para que se vea el riesgo real: que apliquen una tasa por euro a un precio marcado en dólares.
 - **Costo congelado**: una compra fija tu costo por bolivar. Los gastos se valoran contra esa tasa,
   no contra la del dia en que gastas, porque comprar y gastar no ocurren juntos.
 - **Avisos**: se disparan al cruzar el umbral, no mientras siga alto, y con una espera mínima entre avisos.
