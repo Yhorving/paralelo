@@ -4,7 +4,7 @@
      para que una versión nueva llegue apenas haya señal, pero la app abra igual sin datos.
    - APIs de tasas: NO se cachean aquí. La app ya guarda las últimas tasas en localStorage
      y las muestra con su antigüedad, que es más honesto que servir un JSON viejo como si fuera fresco. */
-var CACHE = 'paralelo-v2';
+var CACHE = 'paralelo-v3';
 var SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', function(e){
