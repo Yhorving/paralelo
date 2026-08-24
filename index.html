@@ -186,7 +186,7 @@ summary:before{content:"\2699  "}
   <section id="sec-tasas">
     <h2>La tasa que te van a cobrar</h2>
     <div class="card" style="border-color:rgba(248,113,113,.45)">
-      <div class="lbl">La más alta de las tres <span class="tag t-hot" id="altaCual">—</span></div>
+      <div class="lbl"><span id="altaTit">La más alta</span> <span class="tag t-hot" id="altaCual">—</span></div>
       <div class="big" id="altaVal">—</div>
       <div class="sub" id="altaSub">—</div>
     </div>
@@ -855,8 +855,11 @@ function pintar(){
   $('altaCual').textContent = A? A.n : '—';
   if(A && R.vesBid){
     var golpe=(A.v/R.vesBid-1)*100;
-    $('altaSub').innerHTML='De las tres referencias que usan los comercios (BCV Dólar, BCV Euro y Binance P2P), '+
-      'hoy la más alta es <b>'+A.n+'</b>. Es la que van a querer aplicarte.<br>'+
+    var C=candidatas();
+    $('altaTit').textContent='La más alta de las '+(C.length===5?'cinco':C.length);
+    $('altaSub').innerHTML='De las '+C.length+' referencias que se publican ('+
+      C.map(function(x){return x.n;}).join(', ')+'), hoy la más alta es <b>'+A.n+
+      '</b>. Es la que van a querer aplicarte.<br>'+
       ((A.k==='eurp'||A.k==='eur')&&R.eurUsd
         ? 'Ojo: esa es una tasa <b>por euro</b>. Si te la aplican a un precio en dólares, te están '+
           'cobrando como si tus dólares fueran euros.<br>' : '')+
