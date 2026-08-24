@@ -668,6 +668,22 @@ summary:before{content:"\2699  "}
       </div>
     </div>
 
+    <h2>Qué tasas mostrar</h2>
+    <div class="card">
+      <label class="f" style="margin:0">
+        <span class="lbl">Euro paralelo</span>
+        <select id="cfEurP" onchange="guardarEurP()">
+          <option value="0">Ocultarlo (recomendado)</option>
+          <option value="1">Mostrarlo</option>
+        </select>
+      </label>
+      <div class="hint">
+        Casi no se usa para cobrar, así que por defecto no aparece: ensucia la lista y hace parecer
+        que hay una tasa altísima que en realidad nadie aplica. Además no es un mercado propio, es el
+        dólar paralelo por el cruce EUR/USD. Actívalo si te llegan a cobrar con él.
+      </div>
+    </div>
+
     <h2>Modo</h2>
     <div class="card">
       <label class="f">
@@ -873,6 +889,11 @@ function bcvAlta(){
   return m>0? {n:(b>a?'BCV Euro':'BCV Dólar'), v:m, k:(b>a?'eur':'usd')} : null;
 }
 function guardarRef(){ localStorage.setItem('paralelo.ref',$('cfRef').value); pintar(); }
+function guardarEurP(){ localStorage.setItem('paralelo.eurp',$('cfEurP').value); pintar(); }
+/* El euro paralelo casi no se usa para cobrar: oculto por defecto, activable en Ajustes. */
+function verEurP(){ return localStorage.getItem('paralelo.eurp')==='1'; }
+function eurPactivo(){ return verEurP()? R.paraleloEur : null; }
+
 function promedioMonitor(){
   var xs=[R.bcvUsd,R.vesBid,R.bybit].filter(function(x){return x>0;});
   return xs.length? xs.reduce(function(a,b){return a+b;},0)/xs.length : null;
@@ -1058,15 +1079,22 @@ function pintar(){
     {n:'Bybit P2P',      e:'venta de USDT',              v:R.bybit,       c:'#f7a600'},
     {n:'Dólar Promedio', e:'BCV + Binance + Bybit ÷ 3',  v:prom,          c:'#34d399', noTop:true},
     {n:'Euro BCV',       e:'oficial, por euro'+(eqEurB?' · '+nf(eqEurB)+' por dólar':''),
-                                                         v:R.bcvEur,      c:'#93c5fd'},
-    {n:'Euro paralelo',  e:'mercado, por euro'+(eqEurP?' · '+nf(eqEurP)+' por dólar':''),
-                                                         v:R.paraleloEur, c:'#a78bfa'}
+                                                         v:R.bcvEur,      c:'#93c5fd'}
   ];
+  if(verEurP()) filas.push({n:'Euro paralelo',
+    e:'mercado, por euro'+(eqEurP?' · '+nf(eqEurP)+' por dólar':''), v:R.paraleloEur, c:'#a78bfa'});
+
+  /* dos marcas distintas: con cuál te cobran, y cuál es la más alta de la lista */
+  var maxTodas=0;
+  filas.forEach(function(f){ if(!f.noTop && f.v>maxTodas) maxTodas=f.v; });
   $('monitor').innerHTML = filas.map(function(f){
-    var top = !f.noTop && f.v && Math.abs(f.v-maxV)<1e-9;
-    return '<div class="mrow'+(top?' top':'')+'">'+
+    var esCom = !f.noTop && f.v && Math.abs(f.v-maxV)<1e-9;
+    var esMax = !f.noTop && f.v && Math.abs(f.v-maxTodas)<1e-9 && !esCom;
+    var tags = (esCom? ' <span class="tag t-hot">tasa comercio</span>':'')+
+               (esMax? ' <span class="tag t-warn">la más alta</span>':'');
+    return '<div class="mrow'+(esCom?' top':'')+'">'+
       '<div class="mi" style="background:'+f.c+'">'+f.n.charAt(0)+'</div>'+
-      '<div class="mn">'+f.n+(top?' <span class="tag t-hot">la alta</span>':'')+'<em>'+f.e+'</em></div>'+
+      '<div class="mn">'+f.n+tags+'<em>'+f.e+'</em></div>'+
       '<div class="mv">'+(f.v?nf(f.v):'—')+'</div></div>';
   }).join('');
 
@@ -1084,7 +1112,7 @@ function pintar(){
         'esta es la brecha que importa');
   hb+=fila('Binance vs promedio monitor', pct(g(R.vesBid,prom)),'');
   if(R.paralelo) hb+=fila('Dólar paralelo vs BCV Dólar', pct(g(R.paralelo,R.bcvUsd)),'');
-  if(R.paraleloEur){
+  if(R.paraleloEur && verEurP()){
     hb+=fila('Euro paralelo sobre BCV Euro', pct(g(R.paraleloEur,R.bcvEur)),'');
     var eq=eurEnUsd(R.paraleloEur);
     if(eq && R.vesBid) hb+=fila('Euro paralelo llevado a dólares', nf(eq)+' Bs',
@@ -1176,7 +1204,7 @@ function identificarTasa(t){
   if(R.bcvUsd)      refs.push({n:'BCV Dólar',            v:R.bcvUsd,      of:1});
   if(R.bcvEur)      refs.push({n:'BCV Euro',             v:R.bcvEur,      of:1});
   if(R.paralelo)    refs.push({n:'dólar paralelo',       v:R.paralelo});
-  if(R.paraleloEur) refs.push({n:'euro paralelo',        v:R.paraleloEur});
+  if(eurPactivo())  refs.push({n:'euro paralelo',        v:R.paraleloEur});
   if(R.vesBid)      refs.push({n:'Binance P2P',          v:R.vesBid});
   if(R.bybit)       refs.push({n:'Bybit P2P',            v:R.bybit});
   var prom=promedioMonitor(); if(prom) refs.push({n:'promedio del monitor', v:prom});
@@ -1923,6 +1951,7 @@ function guardarCfg(){
 
 function pintarCfg(){
   $('cfRef').value=localStorage.getItem('paralelo.ref')||'auto';
+  $('cfEurP').value=verEurP()?'1':'0';
   var det=detectarMoneda();
   $('cfDetect').textContent = det
     ? 'Este dispositivo parece estar en zona de '+FIATS[det.fiat==='ves'?'usd':det.fiat].s+
@@ -2056,7 +2085,7 @@ function tasasConv(){
   if(R.vesBid)      t.push({k:'p2p',  n:'Binance P2P',          v:R.vesBid});
   if(R.paralelo)    t.push({k:'par',  n:'Dólar paralelo',       v:R.paralelo});
   if(R.bcvEur)      t.push({k:'eur',  n:'BCV Euro (por euro)',  v:R.bcvEur});
-  if(R.paraleloEur) t.push({k:'eurp', n:'Euro paralelo (por euro)', v:R.paraleloEur});
+  if(eurPactivo())  t.push({k:'eurp', n:'Euro paralelo (por euro)', v:R.paraleloEur});
   var prom=promedioMonitor(); if(prom) t.push({k:'prom', n:'Promedio del monitor', v:prom});
   return t;
 }

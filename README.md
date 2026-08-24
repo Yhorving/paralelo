@@ -53,6 +53,12 @@ sus propias lecturas, que siempre pisan a la semilla.
 - **Los comercios cobran con la BCV más alta**, dólar o euro, no con las paralelas (reportado por gente que
   vive allá). Las paralelas y el P2P quedan como referencia de cuánto vale tu dinero, no como tasas de cobro.
   Configurable en Ajustes, pero el valor útil es la identificación automática.
+- **Dos marcas distintas en las cotizaciones**: `tasa comercio` sobre la BCV más alta, que es con la que
+  cobran, y `la más alta` sobre el máximo de la lista cuando no coinciden. Un solo destacado mezclaba dos
+  preguntas: con cuál te cobran y cuál es el número más grande publicado.
+- **Euro paralelo oculto por defecto**: casi no se usa para cobrar y ensuciaba la lista haciendo parecer que
+  hay una tasa altísima que nadie aplica. Se activa en Ajustes. Cuando está oculto tampoco aparece en las
+  brechas, ni en el conversor, ni entre las tasas que el identificador puede proponer.
 - **Moneda detectada sola**: en el primer arranque se deduce del `timeZone` del dispositivo, con el idioma
   como respaldo. Todo local: no se consulta ningún servicio de geolocalización ni se pide permiso. Si detecta
   `America/Caracas` activa el modo residente, porque ahí no hay moneda de origen que convertir. Se puede
