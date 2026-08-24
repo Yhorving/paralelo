@@ -2,7 +2,11 @@
 
 Calculadora de tasas para viajar a Venezuela. Una sola página, sin build, sin dependencias.
 
-Responde tres preguntas:
+Responde cuatro preguntas:
+
+- **¿Cuánto me ahorro pagando en bolívares?** La Ley Orgánica de Precios Justos (art. 46, num. 5) obliga a
+  facturar al tipo de cambio del BCV. Como tus bolívares los compraste a tasa P2P, que es mas alta, pagar en
+  bolívares en un comercio que cumple te deja un descuento de ~16%.
 
 - **¿A qué tasa me van a cobrar?** Los comercios usan la más alta entre BCV Dólar, BCV Euro y Binance P2P.
 - **¿Cuánto estoy pagando de verdad?** Tu costo real sale de tu tasa de reposición (vender USDT en P2P), no de la tasa oficial.

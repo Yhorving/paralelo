@@ -184,7 +184,21 @@ summary:before{content:"\2699  "}
 
   <!-- ═════════ TASAS ═════════ -->
   <section id="sec-tasas">
-    <h2>La tasa que te van a cobrar</h2>
+    <h2>Tu ventaja pagando en bolívares</h2>
+    <div class="card" style="border-color:rgba(52,211,153,.5)">
+      <div class="lbl">Descuento si te facturan a tasa BCV <span class="tag t-ok">a tu favor</span></div>
+      <div class="big" id="venPct" style="color:var(--good)">—</div>
+      <div class="sub" id="venSub">—</div>
+    </div>
+    <div class="card flat" id="venDet"><div class="sub">—</div></div>
+    <div class="hint" style="padding:0 4px 10px">
+      La Ley Orgánica de Precios Justos (art. 46, num. 5) obliga a facturar al tipo de cambio oficial del BCV,
+      y la SUNDDE exige que el comercio exhiba esa tasa con un código QR para denunciar irregularidades.
+      Por eso te conviene pagar en bolívares comprados a tasa P2P: te costaron caros, pero el comercio
+      está obligado a recibírtelos a la tasa oficial, que es más baja.
+    </div>
+
+    <h2>La tasa que te pueden intentar cobrar</h2>
     <div class="card" style="border-color:rgba(248,113,113,.45)">
       <div class="lbl"><span id="altaTit">La más alta</span> <span class="tag t-hot" id="altaCual">—</span></div>
       <div class="big" id="altaVal">—</div>
@@ -850,6 +864,22 @@ function pintar(){
   $('meta').textContent = edad() + ((R.ts&&!R.manual)?' · '+
     new Date(R.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}):'');
 
+  /* Ventaja legal: el comercio debe facturar a BCV, pero tus bolivares te costaron a tasa P2P */
+  if(R.bcvUsd && R.vesBid){
+    var ven=(1-R.bcvUsd/R.vesBid)*100, por100=100*R.bcvUsd/R.vesBid;
+    $('venPct').textContent=pct(ven);
+    $('venSub').innerHTML='Un precio de <b>100 USD</b> facturado a BCV son '+n0(100*R.bcvUsd)+
+      ' Bs, y esos bolívares te costaron <b>'+nf(por100)+' USD</b>. Te ahorras '+nf(100-por100)+' USD.';
+    var hv='';
+    hv+=fila('Tasa legal de facturación', nf(R.bcvUsd)+' Bs','BCV Dólar del día');
+    hv+=fila('Lo que te costó cada bolívar', nf(R.vesBid)+' Bs por USD','tu tasa P2P');
+    var fbv=fiatPorBs();
+    if(fbv) hv+=fila('100 USD de compra te salen en', nfiat(100*R.bcvUsd*fbv),'pagando en bolívares');
+    hv+='<div class="row"><div class="k">Si en cambio te cobran en efectivo USD</div>'+
+        '<div class="v" style="color:var(--bad)">100,00 USD<small>pierdes la ventaja completa</small></div></div>';
+    $('venDet').innerHTML=hv;
+  } else { $('venPct').textContent='—'; $('venSub').textContent='—'; }
+
   var A=alta();
   $('altaVal').textContent = A? nf(A.v)+' Bs' : '—';
   $('altaCual').textContent = A? A.n : '—';
@@ -1127,6 +1157,7 @@ function calcTasa(src){
   if(!tasa||!R.vesBid){ out.innerHTML='<div class="sub">Llena dos de los tres campos.</div>'; return; }
 
   var dP2P=(tasa/R.vesBid-1)*100, A=alta(), fb=fiatPorBs(), cls,tit;
+  var dLegal = R.bcvUsd? (tasa/R.bcvUsd-1)*100 : null;
   if(dP2P>8){ cls='v-bad'; tit='Tasa abusiva'; }
   else if(dP2P>2){ cls='v-warn'; tit='Te cargan de más'; }
   else if(dP2P>-2){ cls='v-good'; tit='Tasa justa'; }
@@ -1134,6 +1165,8 @@ function calcTasa(src){
 
   var h='<div class="verdict '+cls+'"><div class="vt">'+tit+' · '+nf(tasa)+' Bs/USD</div><div class="vs">'+
     'Está '+pct(dP2P)+' respecto a tu tasa real de Binance ('+nf(R.vesBid)+' Bs).';
+  if(dLegal!=null && dLegal>1) h+=' Además está '+pct(dLegal)+' por encima del BCV, que es la tasa a la '+
+    'que la ley les exige facturar.';
   if(usd){
     var usdReal=ves/R.vesBid, sobre=usdReal-usd;
     h+=' Pagas '+nf(usdReal)+' USD por algo marcado en '+nf(usd)+' USD → <b>'+
@@ -1142,7 +1175,8 @@ function calcTasa(src){
   h+='</div></div><div class="card flat" style="margin-bottom:0">';
   h+='<div class="row"><div class="k">vs Binance P2P '+nf(R.vesBid)+'</div><div class="v" style="color:'+
      (dP2P>2?'var(--bad)':'var(--good)')+'">'+pct(dP2P)+'</div></div>';
-  if(R.bcvUsd) h+=fila('vs BCV Dólar '+nf(R.bcvUsd), pct((tasa/R.bcvUsd-1)*100),'');
+  if(R.bcvUsd) h+=fila('vs BCV Dólar '+nf(R.bcvUsd), pct((tasa/R.bcvUsd-1)*100),
+      'esta es la tasa que la ley les exige');
   if(R.bcvEur) h+=fila('vs BCV Euro '+nf(R.bcvEur), pct((tasa/R.bcvEur-1)*100),'');
   if(A && A.k!=='p2p') h+=fila('vs la más alta ('+A.n+')', pct((tasa/A.v-1)*100),'');
   h+=fila('Por cada 100 USD de compra pierdes', nf(Math.max(0,100*tasa/R.vesBid-100))+' USD','');
@@ -1778,7 +1812,11 @@ function tab(id){
 }
 
 llenarSelects();
-CAMPOS_NUM.forEach(enlazarNum);
+CAMPOS_NUM.forEach(function(id){
+  enlazarNum(id);
+  var el=$(id);                       /* dar formato a lo que ya venga en el HTML */
+  if(el && el.value) el.value=fmtLive(el.value);
+});
 ['coTasaF','coTasaV'].forEach(function(id){
   $(id).addEventListener('input',function(){ this.dataset.tocado='1'; });
 });
