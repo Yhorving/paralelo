@@ -228,11 +228,11 @@ summary:before{content:"\2699  "}
     <details>
       <summary>Ajustar tasas a mano (sin internet, o si el comercio usa otra)</summary>
       <div style="margin-top:12px">
-        <label class="f"><span class="lbl">BCV Dólar</span><input type="number" id="mBcvUsd" inputmode="decimal" step="any"></label>
-        <label class="f"><span class="lbl">BCV Euro</span><input type="number" id="mBcvEur" inputmode="decimal" step="any"></label>
-        <label class="f"><span class="lbl">Binance P2P — vender USDT (Bs)</span><input type="number" id="mVesBid" inputmode="decimal" step="any"></label>
-        <label class="f"><span class="lbl">Bybit P2P (Bs)</span><input type="number" id="mBybit" inputmode="decimal" step="any"></label>
-        <label class="f"><span class="lbl" id="lblFiatAsk">Comprar USDT con tu moneda</span><input type="number" id="mFiatAsk" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">BCV Dólar</span><input type="text" id="mBcvUsd" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">BCV Euro</span><input type="text" id="mBcvEur" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">Binance P2P — vender USDT (Bs)</span><input type="text" id="mVesBid" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">Bybit P2P (Bs)</span><input type="text" id="mBybit" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl" id="lblFiatAsk">Comprar USDT con tu moneda</span><input type="text" id="mFiatAsk" inputmode="decimal" step="any"></label>
         <div class="inline">
           <button class="icon" onclick="aplicarManual()">Aplicar</button>
           <button class="icon" onclick="cargar()">Volver a live</button>
@@ -249,11 +249,11 @@ summary:before{content:"\2699  "}
       <div class="inline" style="margin-bottom:10px">
         <label class="f" style="margin:0">
           <span class="lbl">Te cobran (Bs)</span>
-          <input type="number" id="sVes" inputmode="decimal" step="any" placeholder="0" oninput="calcSema()">
+          <input type="text" id="sVes" inputmode="decimal" step="any" placeholder="0" oninput="calcSema()">
         </label>
         <label class="f" style="margin:0">
           <span class="lbl">Dicen que son (USD)</span>
-          <input type="number" id="sUsd" inputmode="decimal" step="any" placeholder="opcional" oninput="calcSema()">
+          <input type="text" id="sUsd" inputmode="decimal" step="any" placeholder="opcional" oninput="calcSema()">
         </label>
       </div>
       <div id="semaOut"><div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div></div>
@@ -268,7 +268,7 @@ summary:before{content:"\2699  "}
       <label class="f">
         <span class="lbl">Monto</span>
         <div class="inline">
-          <input type="number" id="pMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcPagar()">
+          <input type="text" id="pMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcPagar()">
           <select id="pMoneda" onchange="calcPagar()" style="flex:0 0 110px"></select>
         </div>
       </label>
@@ -291,7 +291,7 @@ summary:before{content:"\2699  "}
       <div class="inline" style="margin-bottom:10px">
         <label class="f" style="margin:0">
           <span class="lbl">La cuenta es</span>
-          <input type="number" id="eMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcEfectivo()">
+          <input type="text" id="eMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcEfectivo()">
         </label>
         <label class="f" style="margin:0;flex:0 0 92px">
           <span class="lbl">en</span>
@@ -313,7 +313,7 @@ summary:before{content:"\2699  "}
         </label>
         <label class="f" style="margin-bottom:10px">
           <span class="lbl">Tasa del vuelto en Bs</span>
-          <input type="number" id="eTasaV" inputmode="decimal" step="any" placeholder="auto" oninput="calcEfectivo()">
+          <input type="text" id="eTasaV" inputmode="decimal" step="any" placeholder="auto" oninput="calcEfectivo()">
         </label>
       </div>
       <div class="hint" style="margin-bottom:12px">
@@ -332,16 +332,16 @@ summary:before{content:"\2699  "}
       <div class="inline" style="margin-bottom:12px">
         <label class="f" style="margin:0">
           <span class="lbl">Precio en USD</span>
-          <input type="number" id="tUsd" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('usd')">
+          <input type="text" id="tUsd" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('usd')">
         </label>
         <label class="f" style="margin:0">
           <span class="lbl">Cobro en Bs</span>
-          <input type="number" id="tVes" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('ves')">
+          <input type="text" id="tVes" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('ves')">
         </label>
       </div>
       <label class="f">
         <span class="lbl">…o escribe directo la tasa que dice usar</span>
-        <input type="number" id="tTasa" inputmode="decimal" step="any" placeholder="Bs por USD" oninput="calcTasa('tasa')">
+        <input type="text" id="tTasa" inputmode="decimal" step="any" placeholder="Bs por USD" oninput="calcTasa('tasa')">
       </label>
       <div id="tOut"><div class="sub">Llena dos de los tres campos.</div></div>
     </div>
@@ -354,7 +354,7 @@ summary:before{content:"\2699  "}
       <label class="f">
         <span class="lbl">Quiero cambiar</span>
         <div class="inline">
-          <input type="number" id="cMonto" inputmode="decimal" step="any" value="100000" oninput="calcCambio()">
+          <input type="text" id="cMonto" inputmode="decimal" step="any" value="100000" oninput="calcCambio()">
           <select id="cDesde" onchange="calcCambio()" style="flex:0 0 110px"></select>
         </div>
       </label>
@@ -388,11 +388,11 @@ summary:before{content:"\2699  "}
       <div class="inline" style="margin-bottom:10px">
         <label class="f" style="margin:0;flex:1.2">
           <span class="lbl">Bolívares</span>
-          <input type="number" id="gVes" inputmode="decimal" step="any" placeholder="0">
+          <input type="text" id="gVes" inputmode="decimal" step="any" placeholder="0">
         </label>
         <label class="f" style="margin:0">
           <span class="lbl">Tasa aplicada</span>
-          <input type="number" id="gTasa" inputmode="decimal" step="any" placeholder="opcional">
+          <input type="text" id="gTasa" inputmode="decimal" step="any" placeholder="opcional">
         </label>
       </div>
       <label class="f">
@@ -596,6 +596,51 @@ function nfiat(n){ return nf(n,F().d)+' '+F().s; }
 function pct(n){ return (n==null||!isFinite(n))?'—':
   (n>=0?'+':'')+n.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
 function $(id){ return document.getElementById(id); }
+
+/* ── entrada de montos con separador de miles ──
+   Acepta las dos costumbres: "100.000,50" y "100000.50". La regla es que el último
+   separador manda como decimal solo si lo siguen 1 o 2 dígitos; con 3 es agrupación.
+   Así "1.000" son mil y "100,50" son cien con cincuenta, sin tener que adivinar. */
+function parseNum(s){
+  s=String(s==null?'':s).replace(/[^\d.,]/g,'');
+  if(!s) return NaN;
+  var i=Math.max(s.lastIndexOf('.'), s.lastIndexOf(',')), ent=s, dec='';
+  if(i>=0){ var post=s.slice(i+1);
+    if(/^\d{1,2}$/.test(post)){ ent=s.slice(0,i); dec=post; } }
+  ent=ent.replace(/[.,]/g,'');
+  var v=parseFloat((ent||'0')+(dec?'.'+dec:''));
+  return isFinite(v)?v:NaN;
+}
+function fmtLive(s){
+  s=String(s==null?'':s).replace(/[^\d.,]/g,'');
+  if(!s) return '';
+  var i=Math.max(s.lastIndexOf('.'), s.lastIndexOf(',')), ent=s, dec=null;
+  if(i>=0){ var post=s.slice(i+1);
+    if(/^\d{0,2}$/.test(post)){ ent=s.slice(0,i); dec=post; } }
+  ent=ent.replace(/[.,]/g,'').replace(/^0+(?=\d)/,'');
+  var g=ent.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return dec===null? g : (g||'0')+','+dec;
+}
+function setNum(id,v,d){
+  var el=$(id); if(!el) return;
+  if(v==null||!isFinite(v)){ el.value=''; return; }
+  el.value=v.toLocaleString('es-CL',{minimumFractionDigits:(d==null?0:d),maximumFractionDigits:(d==null?2:d)});
+}
+/* reformatea al escribir sin que el cursor salte al final */
+function enlazarNum(id){
+  var el=$(id); if(!el) return;
+  el.addEventListener('input',function(){
+    var pos=el.selectionStart==null?el.value.length:el.selectionStart;
+    var digAntes=el.value.slice(0,pos).replace(/[^\d]/g,'').length;
+    el.value=fmtLive(el.value);
+    var i=0,c=0;
+    while(i<el.value.length && c<digAntes){ if(/\d/.test(el.value[i])) c++; i++; }
+    while(i<el.value.length && !/\d/.test(el.value[i]) && c===digAntes && i===0) i++;
+    try{ el.setSelectionRange(i,i); }catch(e){}
+  });
+}
+var CAMPOS_NUM=['sVes','sUsd','pMonto','tUsd','tVes','tTasa','cMonto','eMonto','eTasaV',
+                'gVes','gTasa','mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk'];
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
@@ -718,7 +763,7 @@ function llenarSelects(){
   var m=MONTOS[FIAT]||MONTOS.usd;
   $('cChips').innerHTML=m.map(function(v){
     return '<span class="chip" onclick="setCambio('+v+')">'+n0(v)+'</span>'; }).join('');
-  if(!MONTOS[FIAT] || $('cMonto').value==='' ) $('cMonto').value=m[1];
+  if(!MONTOS[FIAT] || $('cMonto').value==='' ) setNum('cMonto',m[1],0);
 }
 
 /* ══════════════════ pintar ══════════════════ */
@@ -794,7 +839,7 @@ function pintar(){
 
   ['mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk'].forEach(function(id,i){
     var v=[R.bcvUsd,R.bcvEur,R.vesBid,R.bybit,R.fiatAsk][i];
-    if(v!=null && document.activeElement!==$(id)) $(id).value=Math.round(v*100)/100;
+    if(v!=null && document.activeElement!==$(id)) setNum(id,v,2);
   });
 
   calcSema(); calcPagar(); calcEfectivo(); calcTasa(); calcCambio();
@@ -808,7 +853,7 @@ function fila(k,v,s){
 }
 
 function aplicarManual(){
-  function g(id){ var v=parseFloat($(id).value); return (isFinite(v)&&v>0)?v:null; }
+  function g(id){ var v=parseNum($(id).value); return (isFinite(v)&&v>0)?v:null; }
   R.bcvUsd=g('mBcvUsd')||R.bcvUsd; R.bcvEur=g('mBcvEur')||R.bcvEur;
   R.vesBid=g('mVesBid')||R.vesBid; R.bybit=g('mBybit')||R.bybit; R.fiatAsk=g('mFiatAsk')||R.fiatAsk;
   R.manual=true; R.ts=Date.now();
@@ -817,7 +862,7 @@ function aplicarManual(){
 
 /* ══════════════════ SEMÁFORO ══════════════════ */
 function calcSema(){
-  var v=parseFloat($('sVes').value), u=parseFloat($('sUsd').value), out=$('semaOut');
+  var v=parseNum($('sVes').value), u=parseNum($('sUsd').value), out=$('semaOut');
   if(!isFinite(v)||v<=0||!R.vesBid){
     out.innerHTML='<div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div>'; return; }
   var fb=fiatPorBs(), usdReal=v/R.vesBid;
@@ -843,10 +888,10 @@ function calcSema(){
 }
 
 /* ══════════════════ PAGAR ══════════════════ */
-function setMonto(v){ $('pMonto').value=v; calcPagar(); }
+function setMonto(v){ setNum('pMonto',v,0); calcPagar(); }
 
 function calcPagar(){
-  var m=parseFloat($('pMonto').value), mon=$('pMoneda').value, out=$('pOut');
+  var m=parseNum($('pMonto').value), mon=$('pMoneda').value, out=$('pOut');
   if(!isFinite(m)||m<=0||!R.vesBid){ out.innerHTML='<div class="sub">Escribe un monto.</div>'; return; }
   var fb=fiatPorBs(), ves,usd,fia;
   if(mon==='ves'){ ves=m; usd=m/R.vesBid; fia=fb?m*fb:null; }
@@ -878,9 +923,9 @@ function calcPagar(){
 
 /* ══════════════════ EFECTIVO EN DÓLARES ══════════════════ */
 function calcEfectivo(){
-  var m=parseFloat($('eMonto').value), mon=$('eMon').value, out=$('eOut');
+  var m=parseNum($('eMonto').value), mon=$('eMon').value, out=$('eOut');
   var bil=parseFloat($('eBillete').value), prem=(parseFloat($('ePrem').value)||0)/100;
-  var tv=parseFloat($('eTasaV').value);
+  var tv=parseNum($('eTasaV').value);
   if(!isFinite(m)||m<=0||!R.vesBid){ out.innerHTML='<div class="sub">Escribe la cuenta.</div>'; return; }
 
   var tasaEfec = R.vesBid*(1+prem);          // Bs que te reconocen por 1 USD en billete
@@ -934,18 +979,18 @@ function calcEfectivo(){
 
 /* ══════════════════ DETECTOR ══════════════════ */
 function calcTasa(src){
-  var u=parseFloat($('tUsd').value), v=parseFloat($('tVes').value), t=parseFloat($('tTasa').value);
+  var u=parseNum($('tUsd').value), v=parseNum($('tVes').value), t=parseNum($('tTasa').value);
   var out=$('tOut'), tasa=null, usd=null, ves=null;
 
   if(isFinite(u)&&u>0&&isFinite(v)&&v>0&&src!=='tasa'){
     tasa=v/u; usd=u; ves=v;
-    if(document.activeElement!==$('tTasa')) $('tTasa').value=Math.round(tasa*100)/100;
+    if(document.activeElement!==$('tTasa')) setNum('tTasa',tasa,2);
   } else if(isFinite(t)&&t>0){
     tasa=t;
     if(isFinite(u)&&u>0){ usd=u; ves=u*t;
-      if(src==='tasa'&&document.activeElement!==$('tVes')) $('tVes').value=Math.round(ves*100)/100; }
+      if(src==='tasa'&&document.activeElement!==$('tVes')) setNum('tVes',ves,2); }
     else if(isFinite(v)&&v>0){ ves=v; usd=v/t;
-      if(src==='tasa'&&document.activeElement!==$('tUsd')) $('tUsd').value=Math.round(usd*100)/100; }
+      if(src==='tasa'&&document.activeElement!==$('tUsd')) setNum('tUsd',usd,2); }
   }
   if(!tasa||!R.vesBid){ out.innerHTML='<div class="sub">Llena dos de los tres campos.</div>'; return; }
 
@@ -977,10 +1022,10 @@ function calcTasa(src){
 }
 
 /* ══════════════════ CAMBIAR ══════════════════ */
-function setCambio(v){ $('cMonto').value=v; calcCambio(); }
+function setCambio(v){ setNum('cMonto',v,0); calcCambio(); }
 
 function calcCambio(){
-  var m=parseFloat($('cMonto').value), de=$('cDesde').value;
+  var m=parseNum($('cMonto').value), de=$('cDesde').value;
   var fee=(parseFloat($('cFee').value)||0)/100;
   var ch=$('cChain'), co=$('cComp');
   if(!isFinite(m)||m<=0||!R.fiatAsk||!R.vesBid){
@@ -1027,14 +1072,14 @@ function pushGasto(ves,tasa,desc){
   localStorage.setItem(LS_G,JSON.stringify(GA)); pintarGastos(); return true;
 }
 function guardarGasto(){
-  var v=parseFloat($('sVes').value), u=parseFloat($('sUsd').value);
+  var v=parseNum($('sVes').value), u=parseNum($('sUsd').value);
   var tasa=(isFinite(u)&&u>0&&isFinite(v))? v/u : null;
   if(pushGasto(v,tasa,$('sDesc').value.trim())){
     $('sVes').value=''; $('sUsd').value=''; $('sDesc').value=''; calcSema(); tab('gastos');
   }
 }
 function guardarGastoManual(){
-  if(pushGasto(parseFloat($('gVes').value), parseFloat($('gTasa').value), $('gDesc').value.trim())){
+  if(pushGasto(parseNum($('gVes').value), parseNum($('gTasa').value), $('gDesc').value.trim())){
     $('gVes').value=''; $('gTasa').value=''; $('gDesc').value='';
   }
 }
@@ -1124,10 +1169,25 @@ function guardarHist(){
 }
 function borrarHist(){ localStorage.removeItem(LS_H); pintarGrafico(); }
 
-/* serie combinada: histórico oficial + mis lecturas P2P */
+/* semilla P2P: arranque puntual de usdt.com.ve (CC BY 4.0), servida desde el mismo origen.
+   Mis propias lecturas siempre pisan a la semilla. */
+var SEED = JSON.parse(localStorage.getItem('paralelo.seed')||'null');
+function cargarSeed(){
+  if(SEED) return Promise.resolve();
+  return js('./seed-p2p.json').then(function(a){
+    if(a && a.filas){ SEED=a.filas; localStorage.setItem('paralelo.seed',JSON.stringify(SEED)); }
+    else SEED=[];
+  });
+}
+
+/* serie combinada: histórico oficial + semilla P2P + mis lecturas */
 function serie(){
   var map={};
   BH.rows.forEach(function(r){ map[r.d]={d:r.d,u:r.u,e:r.e,p:null,b:null}; });
+  (SEED||[]).forEach(function(r){
+    var o=map[r.d]||(map[r.d]={d:r.d,u:null,e:null,p:null,b:null});
+    if(r.p) o.p=r.p; if(r.b) o.b=r.b; if(r.u && !o.u) o.u=r.u;
+  });
   hist().forEach(function(x){
     var o=map[x.d]||(map[x.d]={d:x.d,u:null,e:null,p:null,b:null});
     if(x.bcvUsd) o.u=x.bcvUsd; if(x.bcvEur) o.e=x.bcvEur;
@@ -1162,10 +1222,12 @@ function pintarGrafico(){
   datos = rango? todo.slice(-rango) : todo;
   dibujar();
 
-  var conP=todo.filter(function(x){return x.p;}).length;
+  var conP=todo.filter(function(x){return x.p;}).length, mios=hist().filter(function(x){return x.ves;}).length;
   $('chartNota').innerHTML='BCV Dólar y Euro vienen del histórico oficial ('+todo.length+' días). '+
-    'Las series P2P y la brecha se arman con tus propias lecturas: llevas <b>'+conP+
-    '</b> día'+(conP===1?'':'s')+' registrado'+(conP===1?'':'s')+' — cada vez que abres la app se guarda el día.';
+    'El P2P arranca con '+((SEED||[]).length)+' días de semilla de '+
+    '<a href="https://www.usdt.com.ve/historico" target="_blank" rel="noopener" style="color:var(--acc)">usdt.com.ve</a>'+
+    ' (CC BY 4.0) y sigue con tus propias lecturas: llevas <b>'+mios+'</b> día'+(mios===1?'':'s')+
+    ' propio'+(mios===1?'':'s')+', '+conP+' en total. Cada vez que abres la app se guarda el día.';
   $('datosInfo').innerHTML='Histórico oficial: '+BH.rows.length+' días'+
     (BH.ts?' (bajado '+new Date(BH.ts).toLocaleDateString('es-CL')+')':'')+
     '.<br>Lecturas propias: '+hist().length+' días.<br>Gastos: '+GA.length+'.';
@@ -1464,10 +1526,11 @@ function tab(id){
   });
   if(id==='ajustes') pintarCfg();
   window.scrollTo(0,0);
-  if(id==='gr'){ cargarBcvHist(); setTimeout(dibujar,30); }
+  if(id==='gr'){ cargarSeed().then(cargarBcvHist); setTimeout(dibujar,30); }
 }
 
 llenarSelects();
+CAMPOS_NUM.forEach(enlazarNum);
 pintarCfg();
 armarTimer();
 pintar();

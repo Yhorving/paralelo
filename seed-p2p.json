@@ -1,0 +1,16 @@
+{
+ "fuente": "usdt.com.ve",
+ "licencia": "CC BY 4.0",
+ "nota": "Cierre diario: ultimo dato de cada dia. Semilla puntual para que el grafico no arranque vacio; a partir de aqui la app acumula sus propias lecturas, que siempre tienen prioridad sobre estas.",
+ "capturado": "2026-08-24",
+ "filas": [
+  {"d": "2026-08-17", "p": 887.801,  "b": 884.006,  "u": 772.5441},
+  {"d": "2026-08-18", "p": 912.9,    "b": 909.06,   "u": 773.3125},
+  {"d": "2026-08-19", "p": 912,      "b": 913.75,   "u": 775.3356},
+  {"d": "2026-08-20", "p": 916.425,  "b": 911.0005, "u": 777.4161},
+  {"d": "2026-08-21", "p": 918.323,  "b": 916,      "u": 779.9522},
+  {"d": "2026-08-22", "p": 918.6275, "b": 916.003,  "u": 779.9522},
+  {"d": "2026-08-23", "p": 920.3095, "b": 917.56,   "u": 779.9522},
+  {"d": "2026-08-24", "p": 934,      "b": 929.5,    "u": 784.6633}
+ ]
+}
