@@ -148,7 +148,9 @@ input.txt{font-size:15px;font-weight:500}
 
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(18,26,51,.97);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav .nrow{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav .nrow{max-width:640px;margin:0 auto;display:flex}
+nav .nrow button{flex:1 1 0;min-width:0}
+nav button[hidden]{display:none}
 nav button{background:none;border:0;color:var(--dim2);padding:10px 2px 11px;font:inherit;font-size:10px;
   font-weight:650;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
 nav button .ic{font-size:18px;line-height:1}
@@ -229,8 +231,8 @@ summary:before{content:"\2699  "}
     <h2>Brechas</h2>
     <div class="card" id="brechas"><div class="sub">—</div></div>
 
-    <h2 id="hMoneda">Desde tu moneda</h2>
-    <div class="card">
+    <h2 id="hMoneda" data-solo-viajero>Desde tu moneda</h2>
+    <div class="card" data-solo-viajero>
       <label class="f" style="margin-bottom:14px">
         <span class="lbl">Moneda con la que pagas</span>
         <select id="selFiat" onchange="cambiarFiat()"></select>
@@ -400,6 +402,78 @@ summary:before{content:"\2699  "}
 
     <h2>Comparación</h2>
     <div class="card" id="cComp"><div class="sub">—</div></div>
+  </section>
+
+  <!-- ═════════ CALCULAR (modo residente) ═════════ -->
+  <section id="sec-calc" hidden>
+    <h2>Conversor</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">Con qué tasa</span>
+        <select id="kTasa" onchange="calcConv('usd')"></select>
+      </label>
+      <label class="f">
+        <span class="lbl">Dólares</span>
+        <div class="inline">
+          <input type="text" id="kUsd" inputmode="decimal" placeholder="0" oninput="calcConv('usd')">
+          <button class="icon" style="flex:0 0 auto" onclick="copiar('kUsd')">Copiar</button>
+        </div>
+      </label>
+      <label class="f">
+        <span class="lbl">Bolívares</span>
+        <div class="inline">
+          <input type="text" id="kVes" inputmode="decimal" placeholder="0" oninput="calcConv('ves')">
+          <button class="icon" style="flex:0 0 auto" onclick="copiar('kVes')">Copiar</button>
+        </div>
+      </label>
+      <div class="chips">
+        <span class="chip" onclick="setConv(1)">1</span>
+        <span class="chip" onclick="setConv(10)">10</span>
+        <span class="chip" onclick="setConv(50)">50</span>
+        <span class="chip" onclick="setConv(100)">100</span>
+        <span class="chip" onclick="setConv(500)">500</span>
+      </div>
+      <div id="kOut"><div class="sub">—</div></div>
+    </div>
+
+    <h2>Tasas del BCV</h2>
+    <div class="card" id="kBcv"><div class="sub">—</div></div>
+
+    <h2>Tasa de otra fecha</h2>
+    <div class="card">
+      <div class="sub" style="margin-bottom:12px">
+        Para una factura vieja o para revisar a qué tasa te cobraron un día. Usa el histórico
+        oficial, que llega a 2021.
+      </div>
+      <label class="f">
+        <span class="lbl">Fecha</span>
+        <input type="date" id="kFecha" onchange="buscarFecha()" style="font-size:16px;font-weight:600">
+      </label>
+      <div id="kFechaOut"><div class="sub">Elige una fecha.</div></div>
+    </div>
+
+    <h2>¿Cuánto rinde tu dinero?</h2>
+    <div class="card">
+      <div class="sub" style="margin-bottom:12px">
+        Si cobras o ahorras en dólares y gastas en bolívares, esto te dice cuánto pierdes o ganas
+        según a qué tasa te paguen y a cuál gastes.
+      </div>
+      <div class="inline">
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">Te pagan (USD)</span>
+          <input type="text" id="kIng" inputmode="decimal" placeholder="0" oninput="calcRinde()">
+        </label>
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">A qué tasa te lo pagan</span>
+          <input type="text" id="kIngTasa" inputmode="decimal" placeholder="auto" oninput="calcRinde()">
+        </label>
+      </div>
+      <div class="hint" style="margin-bottom:12px">
+        Si te pagan en dólares o USDT deja la tasa vacía. Si te lo pagan en bolívares a una tasa fija,
+        ponla aquí y verás cuánto vale de verdad.
+      </div>
+      <div id="kRinde"><div class="sub">—</div></div>
+    </div>
   </section>
 
   <!-- ═════════ GASTOS ═════════ -->
@@ -596,8 +670,23 @@ summary:before{content:"\2699  "}
         <div class="v" id="cfLast" style="font-size:13px">nunca</div></div>
     </div>
 
-    <h2>Moneda</h2>
+    <h2>Modo</h2>
     <div class="card">
+      <label class="f">
+        <span class="lbl">¿Cómo usas la app?</span>
+        <select id="cfModo" onchange="cambiarModo()">
+          <option value="viajero">Viajero — traigo dinero de afuera</option>
+          <option value="residente">Vivo en Venezuela — solo bolívares y dólares</option>
+        </select>
+      </label>
+      <div class="hint">
+        En modo residente desaparecen la moneda de origen y la ruta de cambio desde el exterior,
+        y aparece el conversor rápido con las tasas del BCV y la consulta por fecha.
+      </div>
+    </div>
+
+    <h2 data-solo-viajero>Moneda</h2>
+    <div class="card" data-solo-viajero>
       <label class="f" style="margin:0">
         <span class="lbl">Moneda con la que pagas</span>
         <select id="selFiat2" onchange="FIAT=this.value;localStorage.setItem(LS_F,FIAT);llenarSelects();cargar();"></select>
@@ -618,6 +707,7 @@ summary:before{content:"\2699  "}
     <button onclick="tab('tasas')" aria-selected="true" id="nb-tasas"><span class="ic">&#128202;</span>Tasas</button>
     <button onclick="tab('pagar')" aria-selected="false" id="nb-pagar"><span class="ic">&#128721;</span>Pagar</button>
     <button onclick="tab('cambiar')" aria-selected="false" id="nb-cambiar"><span class="ic">&#128260;</span>Cambiar</button>
+    <button onclick="tab('calc')" aria-selected="false" id="nb-calc" hidden><span class="ic">&#129518;</span>Calcular</button>
     <button onclick="tab('gastos')" aria-selected="false" id="nb-gastos"><span class="ic">&#129534;</span>Gastos</button>
     <button onclick="tab('gr')" aria-selected="false" id="nb-gr"><span class="ic">&#128200;</span>Gráfico</button>
   </div>
@@ -717,7 +807,7 @@ function enlazarNum(id){
 }
 var CAMPOS_NUM=['sVes','sUsd','pMonto','tUsd','tVes','tTasa','cMonto','eMonto','eTasaV',
                 'gVes','gTasa','mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk',
-                'coMonto','coTasaF','coTasaV'];
+                'coMonto','coTasaF','coTasaV','kUsd','kVes','kIng','kIngTasa'];
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
@@ -771,7 +861,10 @@ function cargar(){
            var pe=e.filter(function(x){return x.fuente==='paralelo';})[0];
            if(oe) R.bcvEur=oe.promedio; if(pe) R.paraleloEur=pe.promedio; }
     /* bcv.today como respaldo/confirmación del oficial */
-    if(bt){ if(!R.bcvUsd && bt.USD) R.bcvUsd=bt.USD; if(!R.bcvEur && bt.EUR) R.bcvEur=bt.EUR; }
+    if(bt){
+      if(!R.bcvUsd && bt.USD) R.bcvUsd=bt.USD; if(!R.bcvEur && bt.EUR) R.bcvEur=bt.EUR;
+      R.bcvTodas={USD:bt.USD||R.bcvUsd, EUR:bt.EUR||R.bcvEur, CNY:bt.CNY, TRY:bt.TRY, RUB:bt.RUB};
+    }
     if(!d && !bt) fallas.push('BCV dólar');
     if(!e && !(bt&&bt.EUR)) fallas.push('BCV euro');
 
@@ -988,6 +1081,14 @@ function pintar(){
   if(R.vesBid && document.activeElement!==$('coTasaV') && !$('coTasaV').dataset.tocado)
     setNum('coTasaV',R.vesBid,2);
   prevCompra();
+  var tc=tasasConv();
+  if(tc.length && $('kTasa')){
+    var prev=$('kTasa').value;
+    $('kTasa').innerHTML=tc.map(function(x){
+      return '<option value="'+x.k+'">'+x.n+' — '+nf(x.v)+' Bs</option>'; }).join('');
+    if(prev && tc.filter(function(x){return x.k===prev;}).length) $('kTasa').value=prev;
+  }
+  pintarBcvTodas(); calcConv('usd'); calcRinde();
   calcSema(); calcPagar(); calcEfectivo(); calcTasa(); calcCambio();
   pintarGastos(); pintarGrafico();
   if(!$('sec-ajustes').hidden) pintarCfg();
@@ -1839,8 +1940,171 @@ function armarTimer(){
   }, Math.max(MIN_INT,CFG.int)*60000);
 }
 
+/* ══════════════════ MODO RESIDENTE ══════════════════ */
+/* Quien vive allá no cambia pesos ni euros: cobra o ahorra en dólares y gasta en bolívares.
+   Sobra toda la cadena fiat→USDT→VES y sobra el selector de moneda de origen. */
+var LS_M='paralelo.modo';
+var MODO = localStorage.getItem(LS_M) || 'viajero';
+
+function aplicarModo(){
+  var res = (MODO==='residente');
+  $('nb-cambiar').hidden = res;
+  $('nb-calc').hidden = !res;
+  document.querySelectorAll('[data-solo-viajero]').forEach(function(el){ el.hidden = res; });
+  var act = TABS.filter(function(k){ return !$('sec-'+k).hidden; })[0];
+  if(res && act==='cambiar') tab('calc');
+  if(!res && act==='calc') tab('cambiar');
+  if($('cfModo')) $('cfModo').value=MODO;
+}
+function cambiarModo(){
+  MODO=$('cfModo').value; localStorage.setItem(LS_M,MODO);
+  aplicarModo(); pintar();
+}
+
+function copiar(id){
+  var el=$(id), t=(el.value||'').replace(/\./g,'');   /* sin puntos, listo para pegar en el banco */
+  if(!t) return;
+  var ok=function(){ var b=event&&event.target; if(b){ var o=b.textContent; b.textContent='Copiado';
+    setTimeout(function(){ b.textContent=o; },1200); } };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(ok).catch(function(){});
+  } else { el.select(); try{ document.execCommand('copy'); ok(); }catch(e){} }
+}
+
+/* tasas disponibles para el conversor */
+function tasasConv(){
+  var t=[];
+  if(R.bcvUsd)      t.push({k:'bcv',  n:'BCV Dólar (la legal)', v:R.bcvUsd});
+  if(R.vesBid)      t.push({k:'p2p',  n:'Binance P2P',          v:R.vesBid});
+  if(R.paralelo)    t.push({k:'par',  n:'Dólar paralelo',       v:R.paralelo});
+  if(R.bcvEur)      t.push({k:'eur',  n:'BCV Euro (por euro)',  v:R.bcvEur});
+  if(R.paraleloEur) t.push({k:'eurp', n:'Euro paralelo (por euro)', v:R.paraleloEur});
+  var prom=promedioMonitor(); if(prom) t.push({k:'prom', n:'Promedio del monitor', v:prom});
+  return t;
+}
+function tasaConvSel(){
+  var t=tasasConv(), k=$('kTasa').value;
+  return t.filter(function(x){return x.k===k;})[0] || t[0] || null;
+}
+
+function setConv(v){ setNum('kUsd',v,2); calcConv('usd'); }
+
+function calcConv(src){
+  var T=tasaConvSel(), out=$('kOut');
+  if(!T){ out.innerHTML='<div class="sub">Sin tasas cargadas.</div>'; return; }
+  var u=parseNum($('kUsd').value), v=parseNum($('kVes').value);
+  if(src==='usd'){
+    if(!isFinite(u)||u<=0){ if(src==='usd') $('kVes').value=''; }
+    else setNum('kVes', u*T.v, 2);
+  } else {
+    if(!isFinite(v)||v<=0){ $('kUsd').value=''; }
+    else setNum('kUsd', v/T.v, 2);
+  }
+  u=parseNum($('kUsd').value); v=parseNum($('kVes').value);
+  if(!isFinite(v)||v<=0){ out.innerHTML='<div class="sub">Escribe un monto.</div>'; return; }
+
+  var h=fila('Tasa usada', nf(T.v)+' Bs', T.n);
+  if(R.bcvUsd && T.k!=='bcv') h+=fila('A tasa BCV serían', n0(u*R.bcvUsd)+' Bs',
+     pct((T.v/R.bcvUsd-1)*100)+' de diferencia');
+  if(R.vesBid && T.k!=='p2p') h+=fila('A tasa Binance serían', n0(u*R.vesBid)+' Bs',
+     pct((T.v/R.vesBid-1)*100)+' de diferencia');
+  if(R.bcvUsd && R.vesBid) h+=fila('Esos '+n0(v)+' Bs valen', nf(v/R.vesBid)+' USD',
+     'si los cambias en P2P hoy');
+  out.innerHTML=h;
+}
+
+/* las cinco monedas que publica el BCV, con su variación diaria */
+function pintarBcvTodas(){
+  if(!$('kBcv')) return;
+  var M=[{k:'USD',n:'Dólar'},{k:'EUR',n:'Euro'},{k:'CNY',n:'Yuan'},
+         {k:'TRY',n:'Lira'},{k:'RUB',n:'Rublo'}];
+  var hay=R.bcvTodas||{};
+  var h=M.map(function(m){
+    var v=hay[m.k]; if(!v) return '';
+    var d=variacion(m.k);
+    var col = d==null? 'var(--dim2)' : (d.abs>=0? 'var(--good)':'var(--bad)');
+    return '<div class="row"><div class="k">'+m.n+' <span style="color:var(--dim2)">'+m.k+'</span></div>'+
+      '<div class="v">'+nf(v)+' Bs'+(d? '<small style="color:'+col+'">'+(d.abs>=0?'▲ +':'▼ ')+
+      nf(d.abs)+' ('+pct(d.pct)+')</small>':'')+'</div></div>';
+  }).join('');
+  $('kBcv').innerHTML = h || '<div class="sub">—</div>';
+}
+
+/* variación contra el último día anterior con dato */
+function variacion(clave){
+  var mapa={USD:'u',EUR:'e',BIN:'p',BYB:'b'};
+  var c=mapa[clave]; if(!c) return null;
+  var hoyV = clave==='USD'? R.bcvUsd : clave==='EUR'? R.bcvEur : clave==='BIN'? R.vesBid : R.bybit;
+  if(!hoyV) return null;
+  var s=serie(), hoy=new Date().toISOString().slice(0,10), prev=null;
+  for(var i=s.length-1;i>=0;i--){ if(s[i].d<hoy && s[i][c]>0){ prev=s[i][c]; break; } }
+  if(!prev) return null;
+  return {abs:hoyV-prev, pct:(hoyV/prev-1)*100};
+}
+
+function buscarFecha(){
+  var f=$('kFecha').value, out=$('kFechaOut');
+  if(!f){ out.innerHTML='<div class="sub">Elige una fecha.</div>'; return; }
+  out.innerHTML='<div class="sub">Buscando…</div>';
+  cargarSeed().then(cargarBcvHist).then(function(){
+    var s=serie(), fila_=null;
+    for(var i=0;i<s.length;i++){ if(s[i].d===f){ fila_=s[i]; break; } }
+    if(!fila_){
+      /* el BCV no publica fines de semana ni feriados: sirve el último hábil anterior */
+      for(var j=s.length-1;j>=0;j--){ if(s[j].d<f && s[j].u>0){ fila_=s[j]; break; } }
+      if(!fila_){ out.innerHTML='<div class="err">No tengo datos de esa fecha.</div>'; return; }
+      out.innerHTML='<div class="hint" style="margin:0 0 10px">El BCV no publicó ese día. '+
+        'Te muestro el último hábil anterior: <b>'+fila_.d+'</b>.</div>'+filasFecha(fila_);
+      return;
+    }
+    out.innerHTML=filasFecha(fila_);
+  });
+}
+function filasFecha(r){
+  var h='';
+  if(r.u) h+=fila('BCV Dólar', nf(r.u)+' Bs','');
+  if(r.e) h+=fila('BCV Euro', nf(r.e)+' Bs','');
+  if(r.p) h+=fila('Binance P2P', nf(r.p)+' Bs','');
+  if(r.b) h+=fila('Bybit P2P', nf(r.b)+' Bs','');
+  if(r.p&&r.u) h+=fila('Brecha de ese día', pct((r.p/Math.max(r.u,r.e||0)-1)*100),'');
+  if(r.u&&R.bcvUsd) h+=fila('Desde entonces el BCV', pct((R.bcvUsd/r.u-1)*100),
+    'hoy está en '+nf(R.bcvUsd));
+  return h;
+}
+
+function calcRinde(){
+  var ing=parseNum($('kIng').value), tsa=parseNum($('kIngTasa').value), out=$('kRinde');
+  if(!isFinite(ing)||ing<=0||!R.vesBid){ out.innerHTML='<div class="sub">—</div>'; return; }
+  var enBs, valorReal, h='';
+  if(isFinite(tsa)&&tsa>0){
+    enBs=ing*tsa; valorReal=enBs/R.vesBid;
+    h+=fila('Recibes', n0(enBs)+' Bs','a '+nf(tsa)+' Bs por USD');
+    h+=fila('Que valen de verdad', nf(valorReal)+' USD','al cambiarlos en P2P hoy');
+    var merma=ing-valorReal;
+    h+='<div class="verdict '+(merma>0.01*ing?'v-bad':'v-good')+'" style="margin:12px 0 0">'+
+      '<div class="vt">'+(merma>0.01*ing? 'Te pagan '+pct(-(merma/ing)*100)+' por debajo'
+                                        : 'Te pagan a valor real')+'</div>'+
+      '<div class="vs">'+(merma>0.01*ing
+        ? 'Te liquidan a '+nf(tsa)+' cuando el mercado está en '+nf(R.vesBid)+
+          '. De cada '+nf(ing)+' USD que te prometen, en la mano te quedan '+nf(valorReal)+
+          ': se pierden <b>'+nf(merma)+' USD</b>.'
+        : 'La tasa a la que te liquidan va a la par del mercado.')+'</div></div>';
+  } else {
+    enBs=ing*R.vesBid; valorReal=ing;
+    h+=fila('Si lo pasas todo a bolívares', n0(enBs)+' Bs','a '+nf(R.vesBid)+' Bs en P2P');
+    if(R.bcvUsd) h+=fila('Comprando donde facturan a BCV', nf(enBs/R.bcvUsd)+' USD de mercancía',
+      'rinde '+pct((R.vesBid/R.bcvUsd-1)*100)+' más');
+    h+='<div class="verdict v-good" style="margin:12px 0 0">'+
+      '<div class="vt">Tus dólares rinden más gastados en bolívares</div>'+
+      '<div class="vs">Cambiando en P2P y pagando donde facturan a la tasa del BCV, esos '+nf(ing)+
+      ' USD te compran como '+nf(enBs/(R.bcvUsd||R.vesBid))+' USD de mercancía. '+
+      'Cambia solo lo que vayas a gastar: el bolívar se devalúa a diario.</div></div>';
+  }
+  out.innerHTML=h;
+}
+
 /* ══════════════════ tabs / arranque ══════════════════ */
-var TABS=['tasas','pagar','cambiar','gastos','gr','ajustes'];
+var TABS=['tasas','pagar','cambiar','calc','gastos','gr','ajustes'];
 function tab(id){
   TABS.forEach(function(k){
     $('sec-'+k).hidden = (k!==id);
@@ -1849,9 +2113,12 @@ function tab(id){
   if(id==='ajustes') pintarCfg();
   window.scrollTo(0,0);
   if(id==='gr'){ cargarSeed().then(cargarBcvHist); setTimeout(dibujar,30); }
+  if(id==='calc'){ cargarSeed().then(function(){ pintarBcvTodas(); }); }
 }
 
 llenarSelects();
+aplicarModo();
+cargarSeed().then(function(){ pintarBcvTodas(); pintar(); });
 CAMPOS_NUM.forEach(function(id){
   enlazarNum(id);
   var el=$(id);                       /* dar formato a lo que ya venga en el HTML */

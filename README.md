@@ -20,7 +20,15 @@ Responde cuatro preguntas:
 | **Pagar** | Semáforo de sobreprecio, desglose, pago con billetes en efectivo y detector de tasa abusiva |
 | **Cambiar** | La ruta completa: tu moneda → USDT → bolívares, comparada contra las tasas oficiales |
 | **Gastos** | Saldo real: compras con su tasa, gastos descontados y sobreprecio acumulado, exportable a CSV |
+| **Calcular** | Solo en modo residente: conversor con copiar, las 5 monedas del BCV, tasa de cualquier fecha |
 | **Gráfico** | Histórico de BCV y P2P con brecha, y proyección |
+
+## Dos modos
+
+**Viajero** (por defecto): moneda de origen configurable y la ruta completa fiat → USDT → bolívares.
+
+**Residente**: para quien vive allá, cobra o ahorra en dólares y gasta en bolívares. Desaparecen la moneda de
+origen y la ruta desde el exterior; aparece la pestaña Calcular. Se cambia en Ajustes.
 
 ## Fuentes
 
