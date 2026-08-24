@@ -275,6 +275,10 @@ summary:before{content:"\2699  "}
         </div>
       </label>
       <div class="chips" id="xChips"></div>
+      <label class="f" data-solo-viajero style="margin-bottom:8px">
+        <span class="lbl">Tu moneda</span>
+        <select id="xFiat" onchange="cambiarFiatDesde('xFiat')"></select>
+      </label>
       <div class="inline">
         <label class="f" style="margin-bottom:8px">
           <span class="lbl">Precio que dicen (USD)</span>
@@ -683,8 +687,10 @@ summary:before{content:"\2699  "}
     <div class="card" data-solo-viajero>
       <label class="f" style="margin:0">
         <span class="lbl">Moneda con la que pagas</span>
-        <select id="selFiat2" onchange="FIAT=this.value;localStorage.setItem(LS_F,FIAT);llenarSelects();cargar();"></select>
+        <select id="selFiat2" onchange="cambiarFiatDesde('selFiat2')"></select>
       </label>
+      <button class="icon wide" style="margin-top:10px" onclick="redetectar()">Detectar por mi ubicación</button>
+      <div class="hint" id="cfDetect">—</div>
     </div>
 
     <button class="icon wide" onclick="tab('tasas')" style="margin-top:6px">Volver</button>
@@ -733,7 +739,46 @@ var MONTOS={clp:[50000,100000,300000,500000,1000000],cop:[200000,500000,1000000,
 /* ══════════════════ estado ══════════════════ */
 var LS_R='paralelo.rates', LS_H='paralelo.hist', LS_B='paralelo.bcvhist', LS_G='paralelo.gastos',
     LS_F='paralelo.fiat', LS_CO='paralelo.compras';
-var FIAT = localStorage.getItem(LS_F) || 'clp';
+/* La zona horaria del teléfono ya dice el país, sin pedir permisos ni llamar a nadie.
+   El idioma sirve de respaldo cuando la zona no identifica el país (ej. Europe/Madrid). */
+var TZ_FIAT={
+  'America/Santiago':'clp','America/Punta_Arenas':'clp','Pacific/Easter':'clp',
+  'America/Bogota':'cop','America/Lima':'pen','America/La_Paz':'bob',
+  'America/Montevideo':'uyu','America/Asuncion':'pyg','America/Costa_Rica':'crc',
+  'America/Santo_Domingo':'dop','America/Caracas':'ves',
+  'America/Mexico_City':'mxn','America/Monterrey':'mxn','America/Cancun':'mxn',
+  'America/Tijuana':'mxn','America/Merida':'mxn','America/Chihuahua':'mxn','America/Hermosillo':'mxn',
+  'America/Sao_Paulo':'brl','America/Bahia':'brl','America/Fortaleza':'brl',
+  'America/Recife':'brl','America/Belem':'brl','America/Manaus':'brl'
+};
+var LOC_FIAT={CL:'clp',CO:'cop',PE:'pen',AR:'ars',MX:'mxn',BR:'brl',UY:'uyu',BO:'bob',
+              PY:'pyg',CR:'crc',DO:'dop',VE:'ves',US:'usd',
+              ES:'eur',FR:'eur',IT:'eur',DE:'eur',PT:'eur'};
+function detectarMoneda(){
+  var tz='';
+  try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){}
+  if(TZ_FIAT[tz]) return {fiat:TZ_FIAT[tz], via:'zona horaria ('+tz+')'};
+  if(/^America\/Argentina\//.test(tz)) return {fiat:'ars', via:'zona horaria ('+tz+')'};
+  if(/^Europe\//.test(tz)) return {fiat:'eur', via:'zona horaria ('+tz+')'};
+  if(/^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit)$/.test(tz))
+    return {fiat:'usd', via:'zona horaria ('+tz+')'};
+  var lang=(navigator.language||'').toUpperCase();
+  var m=lang.match(/-([A-Z]{2})$/);
+  if(m && LOC_FIAT[m[1]]) return {fiat:LOC_FIAT[m[1]], via:'idioma del teléfono ('+navigator.language+')'};
+  return null;
+}
+
+var FIAT = localStorage.getItem(LS_F);
+var AUTO_DET = null;
+if(!FIAT){
+  AUTO_DET = detectarMoneda();
+  if(AUTO_DET){
+    if(AUTO_DET.fiat==='ves'){        /* está en Venezuela: no hay moneda de origen que convertir */
+      FIAT='usd'; localStorage.setItem(LS_M,'residente');
+    } else FIAT=AUTO_DET.fiat;
+    localStorage.setItem(LS_F,FIAT);
+  }
+}
 if(!FIATS[FIAT]) FIAT='clp';
 
 var R = JSON.parse(localStorage.getItem(LS_R)||'null') || {
@@ -925,6 +970,14 @@ function edad(){
   return 'hace '+Math.round(h/24)+' días';
 }
 
+function cambiarFiatDesde(id){ $('selFiat').value=$(id).value; cambiarFiat(); }
+function redetectar(){
+  var d=detectarMoneda();
+  if(!d){ alert('No pude deducir el país desde este dispositivo.'); return; }
+  if(d.fiat==='ves'){ MODO='residente'; localStorage.setItem(LS_M,'residente'); aplicarModo();
+    alert('Detecté Venezuela: activé el modo residente.'); return; }
+  $('selFiat').value=d.fiat; cambiarFiat();
+}
 function cambiarFiat(){
   FIAT=$('selFiat').value; localStorage.setItem(LS_F,FIAT);
   R.fiatAsk=null; R.fiatBid=null;
@@ -936,6 +989,7 @@ function llenarSelects(){
     return '<option value="'+k+'"'+(k===FIAT?' selected':'')+'>'+FIATS[k].s+' — '+FIATS[k].n+'</option>'; }).join('');
   $('selFiat').innerHTML=opts;
   $('selFiat2').innerHTML=opts;
+  $('xFiat').innerHTML=opts;
   $('coFiat').innerHTML=opts;
   $('xMon').innerHTML='<option value="ves">Bs</option><option value="usd">USD</option>'+
     (MODO==='residente'?'':'<option value="fiat">'+F().s+'</option>');
@@ -1869,6 +1923,11 @@ function guardarCfg(){
 
 function pintarCfg(){
   $('cfRef').value=localStorage.getItem('paralelo.ref')||'auto';
+  var det=detectarMoneda();
+  $('cfDetect').textContent = det
+    ? 'Este dispositivo parece estar en zona de '+FIATS[det.fiat==='ves'?'usd':det.fiat].s+
+      ', según la '+det.via+'. No sale de tu teléfono: no se consulta ningún servicio.'
+    : 'No pude deducir el país desde este dispositivo.';
   $('cfInt').value=CFG.int; $('cfNoti').value=CFG.noti;
   $('cfUp').value=CFG.up; $('cfDn').value=CFG.dn; $('cfGap').value=CFG.gap; $('cfCool').value=CFG.cool;
   $('cfUlt').textContent = R.ts? new Date(R.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}) : '—';

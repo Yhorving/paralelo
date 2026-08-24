@@ -53,6 +53,10 @@ sus propias lecturas, que siempre pisan a la semilla.
 - **Los comercios cobran con la BCV más alta**, dólar o euro, no con las paralelas (reportado por gente que
   vive allá). Las paralelas y el P2P quedan como referencia de cuánto vale tu dinero, no como tasas de cobro.
   Configurable en Ajustes, pero el valor útil es la identificación automática.
+- **Moneda detectada sola**: en el primer arranque se deduce del `timeZone` del dispositivo, con el idioma
+  como respaldo. Todo local: no se consulta ningún servicio de geolocalización ni se pide permiso. Si detecta
+  `America/Caracas` activa el modo residente, porque ahí no hay moneda de origen que convertir. Se puede
+  cambiar desde Pagar, desde Tasas o desde Ajustes — los tres selectores están sincronizados.
 - **Identificar la tasa, no solo medirla**: frente al vendedor sirve el nombre, no el porcentaje. Con el precio
   en dólares la app compara la tasa aplicada contra todas las publicadas y dice cuál es, o que no es ninguna.
 - **Una sola entrada en Pagar**: antes el monto se pedía tres veces (semáforo, desglose y detector) y las
