@@ -1,0 +1,17 @@
+{
+  "name": "Paralelo — tasas Venezuela",
+  "short_name": "Paralelo",
+  "description": "BCV, Binance P2P y cuánto estás pagando de verdad en Venezuela.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "lang": "es",
+  "categories": ["finance", "travel", "utilities"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

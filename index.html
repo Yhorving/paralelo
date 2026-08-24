@@ -1,0 +1,1498 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="Calculadora de tasas para Venezuela: BCV, Binance P2P y tu moneda de origen.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paralelo">
+<title>Paralelo — tasas Venezuela</title>
+<style>
+:root{
+  --bg:#0b1020; --bg2:#121a33; --card:#161f3d; --card2:#1d2950;
+  --line:#2a3765; --txt:#eaf0ff; --dim:#94a3c8; --dim2:#6b7aa3;
+  --acc:#ffc53d; --good:#34d399; --bad:#f87171; --warn:#fb923c; --info:#60a5fa; --vio:#a78bfa;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overscroll-behavior-y:none}
+body{
+  background:var(--bg); color:var(--txt);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:640px;margin:0 auto;padding:12px}
+h1{font-size:17px;margin:0;letter-spacing:.2px}
+h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);margin:22px 0 10px}
+h2:first-child{margin-top:6px}
+header{
+  position:sticky;top:0;z-index:20;background:rgba(11,16,32,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));
+}
+.hrow{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--acc),#f97316);
+  display:grid;place-items:center;font-weight:800;color:#3b2400;font-size:14px;flex:0 0 auto}
+.hmeta{font-size:11px;color:var(--dim2);margin-top:1px}
+button.icon{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+  border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+button.icon.r{margin-left:auto}
+button.icon:active{transform:scale(.96)}
+button.icon[data-busy="1"]{opacity:.45}
+button.wide{width:100%;padding:13px;font-size:14.5px}
+button.prim{background:var(--acc);border-color:var(--acc);color:#3b2400;font-weight:750}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.card.flat{background:var(--bg2)}
+.lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim)}
+.big{font-size:28px;font-weight:750;letter-spacing:-.6px;line-height:1.15;font-variant-numeric:tabular-nums}
+.mid{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.sub{font-size:12.5px;color:var(--dim);line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 7px;border-radius:6px;
+  text-transform:uppercase;vertical-align:middle}
+.t-hot{background:rgba(248,113,113,.16);color:var(--bad)}
+.t-ok{background:rgba(52,211,153,.14);color:var(--good)}
+.t-inf{background:rgba(96,165,250,.14);color:var(--info)}
+.t-warn{background:rgba(251,146,60,.16);color:var(--warn)}
+.t-dim{background:rgba(148,163,200,.13);color:var(--dim)}
+
+label.f{display:block;margin-bottom:12px}
+label.f .lbl{margin-bottom:5px;display:block}
+input,select,textarea{
+  width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:11px;
+  padding:13px 12px;font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;outline:none;font-family:inherit;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+select{font-size:15px;font-weight:600}
+input.txt{font-size:15px;font-weight:500}
+.inline{display:flex;gap:8px}
+.inline>*{flex:1}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:-4px 0 12px}
+.chip{background:var(--card2);border:1px solid var(--line);color:var(--dim);border-radius:20px;
+  padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.chip:active{background:var(--acc);color:#3b2400}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#3b2400}
+
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;
+  border-bottom:1px solid rgba(42,55,101,.55)}
+.row:last-child{border-bottom:0}
+.row .k{font-size:13.5px;color:var(--dim);flex:1 1 auto;min-width:0}
+.row .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .v small{display:block;font-size:11px;font-weight:500;color:var(--dim2);white-space:normal}
+
+.mrow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:11px;
+  background:var(--card2);margin-bottom:7px;border:1px solid transparent}
+.mrow.top{border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.09)}
+.mrow .mi{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11px;
+  font-weight:800;flex:0 0 auto;color:#0b1020}
+.mrow .mn{font-size:14.5px;font-weight:650;flex:1 1 auto;min-width:0}
+.mrow .mn em{display:block;font-style:normal;font-size:10.5px;color:var(--dim2);font-weight:500;margin-top:1px}
+.mrow .mv{font-size:18px;font-weight:750;color:var(--acc);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mrow.top .mv{color:var(--bad)}
+
+.verdict{border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid}
+.v-bad{background:rgba(248,113,113,.09);border-color:rgba(248,113,113,.42)}
+.v-warn{background:rgba(251,146,60,.09);border-color:rgba(251,146,60,.42)}
+.v-good{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.38)}
+.verdict .vt{font-size:15px;font-weight:750;margin-bottom:3px}
+.verdict .vs{font-size:13px;color:var(--dim);line-height:1.5}
+
+/* semáforo */
+.sema{border-radius:var(--r);padding:20px 16px;text-align:center;border:2px solid;margin-bottom:10px}
+.sema .st{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.sema .sp{font-size:44px;font-weight:800;letter-spacing:-2px;line-height:1;margin:6px 0 4px;
+  font-variant-numeric:tabular-nums}
+.sema .ss{font-size:13px;color:var(--dim);line-height:1.5}
+.s-good{background:rgba(52,211,153,.12);border-color:var(--good)} .s-good .st,.s-good .sp{color:var(--good)}
+.s-warn{background:rgba(251,146,60,.12);border-color:var(--warn)} .s-warn .st,.s-warn .sp{color:var(--warn)}
+.s-bad{background:rgba(248,113,113,.13);border-color:var(--bad)}  .s-bad .st,.s-bad .sp{color:var(--bad)}
+.s-idle{background:var(--bg2);border-color:var(--line)} .s-idle .st{color:var(--dim2);font-size:17px}
+
+.chain{position:relative;padding-left:26px}
+.chain .step{position:relative;padding:10px 0}
+.chain .step:before{content:"";position:absolute;left:-19px;top:16px;width:11px;height:11px;border-radius:50%;
+  background:var(--card);border:2px solid var(--acc)}
+.chain .step:after{content:"";position:absolute;left:-14.5px;top:27px;bottom:-10px;width:2px;background:var(--line)}
+.chain .step:last-child:after{display:none}
+
+/* gráfico */
+#chartBox{position:relative;touch-action:pan-y}
+#chartSvg{display:block;width:100%;cursor:crosshair}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.lg{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);
+  border-radius:8px;padding:5px 9px;font-size:11.5px;font-weight:650;cursor:pointer;color:var(--dim)}
+.lg[aria-pressed=true]{color:var(--txt);border-color:var(--dim2)}
+.lg i{width:10px;height:10px;border-radius:3px;display:block;flex:0 0 auto;opacity:.35}
+.lg[aria-pressed=true] i{opacity:1}
+.readout{display:flex;flex-wrap:wrap;gap:x;gap:10px;font-size:11.5px;color:var(--dim);
+  min-height:34px;margin-bottom:6px;font-variant-numeric:tabular-nums;line-height:1.35}
+.readout b{color:var(--txt);font-weight:700}
+
+/* gastos */
+.gitem{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(42,55,101,.55)}
+.gitem:last-child{border-bottom:0}
+.gitem .gd{flex:1 1 auto;min-width:0}
+.gitem .gn{font-size:14px;font-weight:600;word-break:break-word}
+.gitem .gm{font-size:11px;color:var(--dim2);margin-top:2px}
+.gitem .gv{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gitem .gv b{font-size:15px;display:block}
+.gitem .gv small{font-size:11px;color:var(--dim2)}
+.gx{background:none;border:0;color:var(--dim2);font-size:19px;cursor:pointer;padding:0 2px;line-height:1;font-family:inherit}
+.gx:active{color:var(--bad)}
+
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(18,26,51,.97);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .nrow{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{background:none;border:0;color:var(--dim2);padding:10px 2px 11px;font:inherit;font-size:10px;
+  font-weight:650;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button .ic{font-size:18px;line-height:1}
+nav button[aria-selected=true]{color:var(--acc)}
+section[hidden]{display:none}
+.foot{font-size:11px;color:var(--dim2);text-align:center;padding:18px 6px 6px;line-height:1.6}
+.err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.4);color:#fecaca;
+  border-radius:10px;padding:10px 12px;font-size:12.5px;margin-bottom:10px;line-height:1.5}
+details{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--bg2);margin-bottom:10px}
+summary{cursor:pointer;font-size:13px;font-weight:650;color:var(--dim);list-style:none}
+summary::-webkit-details-marker{display:none}
+summary:before{content:"\2699  "}
+.hint{font-size:11.5px;color:var(--dim2);margin-top:6px;line-height:1.5}
+@media (max-width:360px){.big{font-size:24px}.sema .sp{font-size:36px}.mrow .mv{font-size:16px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="logo">Bs</div>
+    <div>
+      <h1>Paralelo</h1>
+      <div class="hmeta" id="meta">cargando tasas…</div>
+    </div>
+    <button class="icon r" id="btnRefresh" onclick="cargar()">&#8635; Tasas</button>
+    <button class="icon" style="padding:8px 10px" onclick="tab('ajustes')" title="Ajustes">&#9881;</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="errbox"></div>
+
+  <!-- ═════════ TASAS ═════════ -->
+  <section id="sec-tasas">
+    <h2>La tasa que te van a cobrar</h2>
+    <div class="card" style="border-color:rgba(248,113,113,.45)">
+      <div class="lbl">La más alta de las tres <span class="tag t-hot" id="altaCual">—</span></div>
+      <div class="big" id="altaVal">—</div>
+      <div class="sub" id="altaSub">—</div>
+    </div>
+
+    <h2>Cotizaciones del día</h2>
+    <div class="card" style="padding:10px">
+      <div id="monitor"><div class="sub" style="padding:6px">—</div></div>
+      <div class="hint" style="padding:2px 4px 0">
+        El «promedio» se calcula como lo publica monitordolarvzla: BCV Dólar, Binance P2P y Bybit P2P entre 3.
+        Sus cifras pueden variar un poco porque filtran las órdenes P2P a su manera.
+      </div>
+    </div>
+
+    <h2>Tu tasa real</h2>
+    <div class="card" style="border-color:rgba(52,211,153,.35)">
+      <div class="lbl">Vendes USDT → recibes <span class="tag t-ok">esta es la tuya</span></div>
+      <div class="big" id="p2pBid">—</div>
+      <div class="sub">Bs por 1 USDT en Binance P2P. Todo lo que te cobren por encima de esto sale de tu bolsillo.</div>
+    </div>
+
+    <h2>Brechas</h2>
+    <div class="card" id="brechas"><div class="sub">—</div></div>
+
+    <h2 id="hMoneda">Desde tu moneda</h2>
+    <div class="card">
+      <label class="f" style="margin-bottom:14px">
+        <span class="lbl">Moneda con la que pagas</span>
+        <select id="selFiat" onchange="cambiarFiat()"></select>
+      </label>
+      <div id="chile"><div class="sub">—</div></div>
+    </div>
+
+    <h2>Tabla de bolsillo</h2>
+    <div class="card" id="bolsillo"><div class="sub">—</div></div>
+
+    <h2>Todos los P2P en bolívares</h2>
+    <div class="card" id="otrosEx"><div class="sub">—</div></div>
+
+    <details>
+      <summary>Ajustar tasas a mano (sin internet, o si el comercio usa otra)</summary>
+      <div style="margin-top:12px">
+        <label class="f"><span class="lbl">BCV Dólar</span><input type="number" id="mBcvUsd" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">BCV Euro</span><input type="number" id="mBcvEur" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">Binance P2P — vender USDT (Bs)</span><input type="number" id="mVesBid" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl">Bybit P2P (Bs)</span><input type="number" id="mBybit" inputmode="decimal" step="any"></label>
+        <label class="f"><span class="lbl" id="lblFiatAsk">Comprar USDT con tu moneda</span><input type="number" id="mFiatAsk" inputmode="decimal" step="any"></label>
+        <div class="inline">
+          <button class="icon" onclick="aplicarManual()">Aplicar</button>
+          <button class="icon" onclick="cargar()">Volver a live</button>
+        </div>
+        <div class="hint">Quedan guardadas en este teléfono hasta que refresques.</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═════════ PAGAR ═════════ -->
+  <section id="sec-pagar" hidden>
+    <h2>Semáforo — úsalo frente al vendedor</h2>
+    <div class="card">
+      <div class="inline" style="margin-bottom:10px">
+        <label class="f" style="margin:0">
+          <span class="lbl">Te cobran (Bs)</span>
+          <input type="number" id="sVes" inputmode="decimal" step="any" placeholder="0" oninput="calcSema()">
+        </label>
+        <label class="f" style="margin:0">
+          <span class="lbl">Dicen que son (USD)</span>
+          <input type="number" id="sUsd" inputmode="decimal" step="any" placeholder="opcional" oninput="calcSema()">
+        </label>
+      </div>
+      <div id="semaOut"><div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div></div>
+      <div class="inline" style="margin-top:4px">
+        <input class="txt" type="text" id="sDesc" placeholder="¿Qué es? (opcional)" style="flex:2">
+        <button class="icon prim" style="flex:1" onclick="guardarGasto()">Guardar gasto</button>
+      </div>
+    </div>
+
+    <h2>El desglose completo</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">Monto</span>
+        <div class="inline">
+          <input type="number" id="pMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcPagar()">
+          <select id="pMoneda" onchange="calcPagar()" style="flex:0 0 110px"></select>
+        </div>
+      </label>
+      <div class="chips">
+        <span class="chip" onclick="setMonto(100)">100</span>
+        <span class="chip" onclick="setMonto(500)">500</span>
+        <span class="chip" onclick="setMonto(1000)">1.000</span>
+        <span class="chip" onclick="setMonto(5000)">5.000</span>
+        <span class="chip" onclick="setMonto(10000)">10.000</span>
+      </div>
+      <div id="pOut"><div class="sub">Escribe un monto.</div></div>
+    </div>
+
+    <h2>Pagar con billetes en efectivo</h2>
+    <div class="card">
+      <div class="sub" style="margin-bottom:12px">
+        Allá el problema real del efectivo no es la tasa: es <b>el vuelto</b>. Escasean los billetes chicos, así que
+        te devuelven en bolívares a la tasa que ellos quieran, o simplemente no hay cambio.
+      </div>
+      <div class="inline" style="margin-bottom:10px">
+        <label class="f" style="margin:0">
+          <span class="lbl">La cuenta es</span>
+          <input type="number" id="eMonto" inputmode="decimal" step="any" placeholder="0" oninput="calcEfectivo()">
+        </label>
+        <label class="f" style="margin:0;flex:0 0 92px">
+          <span class="lbl">en</span>
+          <select id="eMon" onchange="calcEfectivo()"><option value="ves">Bs</option><option value="usd">USD</option></select>
+        </label>
+      </div>
+      <label class="f">
+        <span class="lbl">Pagas con billetes de</span>
+        <select id="eBillete" onchange="calcEfectivo()">
+          <option value="1">1 USD</option><option value="5">5 USD</option>
+          <option value="10">10 USD</option><option value="20" selected>20 USD</option>
+          <option value="50">50 USD</option><option value="100">100 USD</option>
+        </select>
+      </label>
+      <div class="inline">
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">Premio del efectivo (%)</span>
+          <input type="number" id="ePrem" inputmode="decimal" step="any" value="0" oninput="calcEfectivo()">
+        </label>
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">Tasa del vuelto en Bs</span>
+          <input type="number" id="eTasaV" inputmode="decimal" step="any" placeholder="auto" oninput="calcEfectivo()">
+        </label>
+      </div>
+      <div class="hint" style="margin-bottom:12px">
+        El «premio» es cuánto más te reconocen por el billete físico frente a la tasa P2P. Varía por zona, por
+        billete y por el estado del papel (los rotos o marcados los rechazan) — no hay dato público confiable,
+        así que pregúntalo y anótalo aquí. Déjalo en 0 si te lo reciben a la tasa normal.
+      </div>
+      <div id="eOut"><div class="sub">Escribe la cuenta.</div></div>
+    </div>
+
+    <h2>Detector de tasa abusiva</h2>
+    <div class="card">
+      <div class="sub" style="margin-bottom:12px">
+        Precio en dólares que te dijeron + bolívares que te cobran. Te digo qué tasa usó y cuánto te saca de más.
+      </div>
+      <div class="inline" style="margin-bottom:12px">
+        <label class="f" style="margin:0">
+          <span class="lbl">Precio en USD</span>
+          <input type="number" id="tUsd" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('usd')">
+        </label>
+        <label class="f" style="margin:0">
+          <span class="lbl">Cobro en Bs</span>
+          <input type="number" id="tVes" inputmode="decimal" step="any" placeholder="0" oninput="calcTasa('ves')">
+        </label>
+      </div>
+      <label class="f">
+        <span class="lbl">…o escribe directo la tasa que dice usar</span>
+        <input type="number" id="tTasa" inputmode="decimal" step="any" placeholder="Bs por USD" oninput="calcTasa('tasa')">
+      </label>
+      <div id="tOut"><div class="sub">Llena dos de los tres campos.</div></div>
+    </div>
+  </section>
+
+  <!-- ═════════ CAMBIAR ═════════ -->
+  <section id="sec-cambiar" hidden>
+    <h2 id="hCambiar">Tu moneda → Bolívares</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">Quiero cambiar</span>
+        <div class="inline">
+          <input type="number" id="cMonto" inputmode="decimal" step="any" value="100000" oninput="calcCambio()">
+          <select id="cDesde" onchange="calcCambio()" style="flex:0 0 110px"></select>
+        </div>
+      </label>
+      <div class="chips" id="cChips"></div>
+      <label class="f">
+        <span class="lbl">Holgura por operación (%)</span>
+        <input type="number" id="cFee" inputmode="decimal" step="any" value="0" oninput="calcCambio()">
+        <div class="hint">Binance P2P no cobra comisión al comprador. Pon 0,5–1% si quieres margen por el spread real de las órdenes.</div>
+      </label>
+    </div>
+
+    <h2>La ruta</h2>
+    <div class="card"><div class="chain" id="cChain"><div class="sub">—</div></div></div>
+
+    <h2>Comparación</h2>
+    <div class="card" id="cComp"><div class="sub">—</div></div>
+  </section>
+
+  <!-- ═════════ GASTOS ═════════ -->
+  <section id="sec-gastos" hidden>
+    <h2>Total del viaje</h2>
+    <div class="card" style="border-color:rgba(255,197,61,.35)">
+      <div class="lbl">Llevas gastado</div>
+      <div class="big" id="gTotalFiat">—</div>
+      <div class="sub" id="gTotalSub">—</div>
+    </div>
+    <div class="card" id="gResumen"><div class="sub">Todavía no has registrado gastos.</div></div>
+
+    <h2>Agregar a mano</h2>
+    <div class="card">
+      <div class="inline" style="margin-bottom:10px">
+        <label class="f" style="margin:0;flex:1.2">
+          <span class="lbl">Bolívares</span>
+          <input type="number" id="gVes" inputmode="decimal" step="any" placeholder="0">
+        </label>
+        <label class="f" style="margin:0">
+          <span class="lbl">Tasa aplicada</span>
+          <input type="number" id="gTasa" inputmode="decimal" step="any" placeholder="opcional">
+        </label>
+      </div>
+      <label class="f">
+        <span class="lbl">Descripción</span>
+        <input class="txt" type="text" id="gDesc" placeholder="Almuerzo, taxi, mercado…">
+      </label>
+      <button class="icon wide prim" onclick="guardarGastoManual()">Agregar gasto</button>
+    </div>
+
+    <h2>Movimientos</h2>
+    <div class="card" id="gLista"><div class="sub">Sin movimientos.</div></div>
+    <div class="inline">
+      <button class="icon" onclick="exportarGastos()">Exportar CSV</button>
+      <button class="icon" onclick="borrarGastos()">Borrar todo</button>
+    </div>
+  </section>
+
+  <!-- ═════════ GRÁFICO ═════════ -->
+  <section id="sec-gr" hidden>
+    <h2>Comportamiento de las tasas</h2>
+    <div class="card" style="padding:12px 10px">
+      <div class="chips" style="margin-bottom:10px" id="rangos"></div>
+      <div class="legend" id="legend"></div>
+      <div class="readout" id="readout">Toca o arrastra sobre el gráfico para ver cualquier día.</div>
+      <div id="chartBox"><svg id="chartSvg"></svg></div>
+      <div class="hint" style="padding:6px 4px 0" id="chartNota">—</div>
+      <div class="hint" style="padding:6px 4px 0">
+        ¿Quieres el histórico largo del P2P? <a href="https://p2p.army/es/p2p/fiats/VES/charts/USDT"
+        target="_blank" rel="noopener" style="color:var(--acc)">p2p.army</a> lo tiene graficado.
+        Su API es de pago, por eso la app no lo trae sola.
+      </div>
+    </div>
+
+    <h2>Brecha de hoy</h2>
+    <div class="card">
+      <div class="lbl">Binance sobre la BCV más alta</div>
+      <div class="big" id="prGap">—</div>
+      <div class="sub" id="prGapSub">—</div>
+    </div>
+
+    <h2>Proyección</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">Variación diaria estimada (%)</span>
+        <input type="number" id="prRate" inputmode="decimal" step="any" value="0.35" oninput="calcProy()">
+        <div class="hint" id="prRateHint">—</div>
+      </label>
+      <div id="prOut"></div>
+    </div>
+
+    <details>
+      <summary>Datos y mantenimiento</summary>
+      <div style="margin-top:10px">
+        <div class="sub" id="datosInfo">—</div>
+        <div class="inline" style="margin-top:12px">
+          <button class="icon" onclick="cargarBcvHist(true)">Recargar histórico</button>
+          <button class="icon" onclick="borrarHist()">Borrar mis lecturas</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═════════ AJUSTES ═════════ -->
+  <section id="sec-ajustes" hidden>
+    <h2>Actualización automática</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">Cada cuánto refrescar las tasas</span>
+        <select id="cfInt" onchange="guardarCfg()">
+          <option value="0">Solo cuando yo lo pida</option>
+          <option value="15">Cada 15 minutos</option>
+          <option value="30">Cada 30 minutos</option>
+          <option value="60">Cada hora</option>
+          <option value="180">Cada 3 horas</option>
+        </select>
+      </label>
+      <div class="hint">
+        Solo corre con la app abierta y en pantalla — si la mandas al fondo se detiene sola. El mínimo son
+        15 minutos a propósito: las tasas no se mueven más rápido que eso y consultar de más gasta tus datos
+        y castiga a las APIs gratis que usa la app.
+      </div>
+      <div class="row" style="margin-top:10px"><div class="k">Última consulta</div>
+        <div class="v" id="cfUlt" style="font-size:13px">—</div></div>
+      <div class="row"><div class="k">Consultas en esta sesión</div>
+        <div class="v" id="cfCnt" style="font-size:13px">0</div></div>
+    </div>
+
+    <h2>Avisos de alza y baja</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">Notificaciones</span>
+        <select id="cfNoti" onchange="pedirPermiso()">
+          <option value="0">Apagadas</option>
+          <option value="1">Encendidas</option>
+        </select>
+      </label>
+      <div id="cfPerm" class="hint" style="margin-top:-4px;margin-bottom:12px">—</div>
+
+      <label class="f">
+        <span class="lbl">Avisar si el P2P sube más de (%)</span>
+        <input type="number" id="cfUp" inputmode="decimal" step="any" value="1.5" onchange="guardarCfg()">
+      </label>
+      <label class="f">
+        <span class="lbl">Avisar si el P2P baja más de (%)</span>
+        <input type="number" id="cfDn" inputmode="decimal" step="any" value="1.5" onchange="guardarCfg()">
+      </label>
+      <label class="f">
+        <span class="lbl">Avisar si la brecha vs BCV supera (%)</span>
+        <input type="number" id="cfGap" inputmode="decimal" step="any" value="20" onchange="guardarCfg()">
+      </label>
+      <label class="f">
+        <span class="lbl">No avisarme más de una vez cada (horas)</span>
+        <input type="number" id="cfCool" inputmode="decimal" step="1" min="1" value="3" onchange="guardarCfg()">
+      </label>
+      <div class="hint" style="margin-bottom:12px">
+        El aviso se dispara al <b>cruzar</b> el umbral, no mientras siga alto: si el P2P sube 2% y se queda ahí,
+        te avisa una vez, no cada rato. La referencia se reinicia después de cada aviso. Mínimo de espera entre
+        avisos: 1 hora.<br><br>
+        <b>Ojo con esto:</b> una web no puede despertarte sola. Los avisos llegan mientras la app esté abierta
+        (aunque sea en otra pestaña). Si la cierras del todo, no hay notificación — para eso haría falta un
+        servidor mandando push, que esta app no tiene.
+      </div>
+      <button class="icon wide" onclick="probarNoti()">Probar una notificación</button>
+      <div class="row" style="margin-top:12px"><div class="k">Referencia actual</div>
+        <div class="v" id="cfRef" style="font-size:13px">—</div></div>
+      <div class="row"><div class="k">Último aviso</div>
+        <div class="v" id="cfLast" style="font-size:13px">nunca</div></div>
+    </div>
+
+    <h2>Moneda</h2>
+    <div class="card">
+      <label class="f" style="margin:0">
+        <span class="lbl">Moneda con la que pagas</span>
+        <select id="selFiat2" onchange="FIAT=this.value;localStorage.setItem(LS_F,FIAT);llenarSelects();cargar();"></select>
+      </label>
+    </div>
+
+    <button class="icon wide" onclick="tab('tasas')" style="margin-top:6px">Volver</button>
+  </section>
+
+  <div class="foot">
+    BCV en vivo e histórico: <b>bcv.today</b> y <b>ve.dolarapi.com</b> · P2P: <b>criptoya.com</b><br>
+    Cifras referenciales. Confirma en Binance antes de operar.
+  </div>
+</div>
+
+<nav>
+  <div class="nrow">
+    <button onclick="tab('tasas')" aria-selected="true" id="nb-tasas"><span class="ic">&#128202;</span>Tasas</button>
+    <button onclick="tab('pagar')" aria-selected="false" id="nb-pagar"><span class="ic">&#128721;</span>Pagar</button>
+    <button onclick="tab('cambiar')" aria-selected="false" id="nb-cambiar"><span class="ic">&#128260;</span>Cambiar</button>
+    <button onclick="tab('gastos')" aria-selected="false" id="nb-gastos"><span class="ic">&#129534;</span>Gastos</button>
+    <button onclick="tab('gr')" aria-selected="false" id="nb-gr"><span class="ic">&#128200;</span>Gráfico</button>
+  </div>
+</nav>
+
+<script>
+/* ══════════════════ monedas ══════════════════ */
+var FIATS={
+  clp:{n:'Peso chileno',s:'CLP',d:0},
+  cop:{n:'Peso colombiano',s:'COP',d:0},
+  pen:{n:'Sol peruano',s:'PEN',d:2},
+  ars:{n:'Peso argentino',s:'ARS',d:0},
+  mxn:{n:'Peso mexicano',s:'MXN',d:2},
+  brl:{n:'Real brasileño',s:'BRL',d:2},
+  uyu:{n:'Peso uruguayo',s:'UYU',d:2},
+  bob:{n:'Boliviano',s:'BOB',d:2},
+  pyg:{n:'Guaraní',s:'PYG',d:0},
+  crc:{n:'Colón costarricense',s:'CRC',d:0},
+  dop:{n:'Peso dominicano',s:'DOP',d:2},
+  usd:{n:'Dólar (USDT/efectivo)',s:'USD',d:2},
+  eur:{n:'Euro',s:'EUR',d:2}
+};
+var MONTOS={clp:[50000,100000,300000,500000,1000000],cop:[200000,500000,1000000,2000000,5000000],
+  pen:[200,500,1000,2000,5000],ars:[50000,100000,300000,500000,1000000],mxn:[1000,3000,5000,10000,20000],
+  brl:[300,500,1000,2000,5000],uyu:[2000,5000,10000,20000,50000],bob:[500,1000,2000,5000,10000],
+  pyg:[300000,500000,1000000,3000000,5000000],crc:[25000,50000,100000,250000,500000],
+  dop:[3000,5000,10000,20000,50000],usd:[50,100,300,500,1000],eur:[50,100,300,500,1000]};
+
+/* ══════════════════ estado ══════════════════ */
+var LS_R='paralelo.rates', LS_H='paralelo.hist', LS_B='paralelo.bcvhist', LS_G='paralelo.gastos', LS_F='paralelo.fiat';
+var FIAT = localStorage.getItem(LS_F) || 'clp';
+if(!FIATS[FIAT]) FIAT='clp';
+
+var R = JSON.parse(localStorage.getItem(LS_R)||'null') || {
+  bcvUsd:null, bcvEur:null, paralelo:null,
+  vesBid:null, vesAsk:null, bybit:null,
+  fiatAsk:null, fiatBid:null, fiatCode:FIAT,
+  otros:[], ts:null, manual:false
+};
+if(R.clpAsk && !R.fiatAsk){ R.fiatAsk=R.clpAsk; R.fiatBid=R.clpBid; R.fiatCode='clp'; }
+
+var BH = JSON.parse(localStorage.getItem(LS_B)||'null') || {ts:null, rows:[]};
+var GA = JSON.parse(localStorage.getItem(LS_G)||'[]');
+
+function F(){ return FIATS[FIAT]; }
+function nf(n,d){ d=(d==null?2:d);
+  return (n==null||!isFinite(n))?'—':n.toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function n0(n){ return nf(n,0); }
+function nfiat(n){ return nf(n,F().d)+' '+F().s; }
+function pct(n){ return (n==null||!isFinite(n))?'—':
+  (n>=0?'+':'')+n.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+function candidatas(){
+  var c=[];
+  if(R.bcvUsd) c.push({n:'BCV Dólar', v:R.bcvUsd, k:'usd'});
+  if(R.bcvEur) c.push({n:'BCV Euro',  v:R.bcvEur, k:'eur'});
+  if(R.vesBid) c.push({n:'Binance P2P', v:R.vesBid, k:'p2p'});
+  return c;
+}
+function alta(){ var c=candidatas(); if(!c.length) return null;
+  return c.reduce(function(a,b){return b.v>a.v?b:a;}); }
+/* la más alta SOLO entre las oficiales: referencia para medir la brecha */
+function bcvAlta(){
+  var a=R.bcvUsd||0, b=R.bcvEur||0, m=Math.max(a,b);
+  return m>0? {n:(b>a?'BCV Euro':'BCV Dólar'), v:m} : null;
+}
+function promedioMonitor(){
+  var xs=[R.bcvUsd,R.vesBid,R.bybit].filter(function(x){return x>0;});
+  return xs.length? xs.reduce(function(a,b){return a+b;},0)/xs.length : null;
+}
+/* unidades de tu moneda que cuesta 1 Bs, por la ruta FIAT→USDT→VES */
+function fiatPorBs(){ return (R.fiatAsk&&R.vesBid)? R.fiatAsk/R.vesBid : null; }
+
+/* ══════════════════ carga de tasas ══════════════════ */
+function j(u){ return fetch(u,{cache:'no-store'}).then(function(r){
+  if(!r.ok) throw new Error(u+' → '+r.status); return r.json(); }); }
+function js(u){ return j(u).catch(function(){ return null; }); }
+
+function cargar(){
+  var b=$('btnRefresh'); b.dataset.busy='1'; $('meta').textContent='actualizando…'; $('errbox').innerHTML='';
+  return Promise.all([
+    js('https://ve.dolarapi.com/v1/dolares'),
+    js('https://ve.dolarapi.com/v1/euros'),
+    js('https://criptoya.com/api/usdt/ves/100'),
+    js('https://criptoya.com/api/usdt/'+FIAT+'/100'),
+    js('https://bcv.today/api/v1/rate.json')
+  ]).then(function(res){
+    var d=res[0], e=res[1], v=res[2], c=res[3], bt=res[4], fallas=[];
+
+    if(d){ var of=d.filter(function(x){return x.fuente==='oficial';})[0];
+           var pa=d.filter(function(x){return x.fuente==='paralelo';})[0];
+           if(of) R.bcvUsd=of.promedio; if(pa) R.paralelo=pa.promedio; }
+    if(e){ var oe=e.filter(function(x){return x.fuente==='oficial';})[0]; if(oe) R.bcvEur=oe.promedio; }
+    /* bcv.today como respaldo/confirmación del oficial */
+    if(bt){ if(!R.bcvUsd && bt.USD) R.bcvUsd=bt.USD; if(!R.bcvEur && bt.EUR) R.bcvEur=bt.EUR; }
+    if(!d && !bt) fallas.push('BCV dólar');
+    if(!e && !(bt&&bt.EUR)) fallas.push('BCV euro');
+
+    if(v){
+      var bp=v.binancep2p;
+      if(bp){ R.vesBid=bp.totalBid||bp.bid; R.vesAsk=bp.totalAsk||bp.ask; }
+      if(v.bybitp2p) R.bybit=v.bybitp2p.totalBid||v.bybitp2p.bid;
+      R.otros=Object.keys(v).map(function(k){ var o=v[k];
+          return (o&&typeof o==='object'&&o.bid>0)?{n:k,bid:o.totalBid||o.bid,ask:o.totalAsk||o.ask}:null; })
+        .filter(Boolean).sort(function(a,b){return b.bid-a.bid;}).slice(0,10);
+    } else fallas.push('P2P bolívar');
+
+    if(c){ var cp=c.binancep2p||c;
+           if(cp && (cp.ask||cp.totalAsk)){ R.fiatAsk=cp.totalAsk||cp.ask; R.fiatBid=cp.totalBid||cp.bid;
+             R.fiatCode=FIAT; } }
+    else fallas.push('P2P '+F().s);
+
+    if(fallas.length){
+      $('errbox').innerHTML='<div class="err">No pude actualizar: '+fallas.join(', ')+
+        '. Uso los últimos valores guardados — revísalos en «Ajustar tasas a mano».</div>';
+      if(!R.ts) R.ts=Date.now();
+    } else { R.manual=false; R.ts=Date.now(); }
+
+    nConsultas++;
+    localStorage.setItem(LS_R,JSON.stringify(R));
+    guardarHist(); pintar(); revisarAvisos(); b.dataset.busy='';
+  });
+}
+
+/* histórico oficial (1830 días, se refresca 1 vez al día) */
+function cargarBcvHist(forzar){
+  var viejo = !BH.ts || (Date.now()-BH.ts) > 12*3600*1000;
+  if(!forzar && !viejo && BH.rows.length) { pintarGrafico(); return Promise.resolve(); }
+  return js('https://bcv.today/api/v1/history.json').then(function(a){
+    if(a && a.length){
+      BH={ts:Date.now(), rows:a.filter(function(x){return x.date&&x.USD;})
+        .map(function(x){ return {d:x.date, u:+x.USD, e:x.EUR?+x.EUR:null}; }).slice(-1200)};
+      try{ localStorage.setItem(LS_B,JSON.stringify(BH)); }catch(err){
+        BH.rows=BH.rows.slice(-400); localStorage.setItem(LS_B,JSON.stringify(BH)); }
+    }
+    pintarGrafico();
+  });
+}
+
+function edad(){
+  if(!R.ts) return 'sin datos';
+  if(R.manual) return 'tasas manuales';
+  var m=Math.round((Date.now()-R.ts)/60000);
+  if(m<1) return 'actualizado ahora';
+  if(m<60) return 'hace '+m+' min';
+  var h=Math.round(m/60);
+  if(h<24) return 'hace '+h+' h';
+  return 'hace '+Math.round(h/24)+' días';
+}
+
+function cambiarFiat(){
+  FIAT=$('selFiat').value; localStorage.setItem(LS_F,FIAT);
+  R.fiatAsk=null; R.fiatBid=null;
+  llenarSelects(); cargar();
+}
+
+function llenarSelects(){
+  var opts=Object.keys(FIATS).map(function(k){
+    return '<option value="'+k+'"'+(k===FIAT?' selected':'')+'>'+FIATS[k].s+' — '+FIATS[k].n+'</option>'; }).join('');
+  $('selFiat').innerHTML=opts;
+  $('selFiat2').innerHTML=opts;
+  $('pMoneda').innerHTML='<option value="ves">Bs</option><option value="usd">USD</option>'+
+    '<option value="fiat">'+F().s+'</option>';
+  $('cDesde').innerHTML='<option value="fiat">'+F().s+'</option><option value="ves">Bs</option>'+
+    '<option value="usdt">USDT</option>';
+  $('hMoneda').textContent='Desde '+F().n.toLowerCase();
+  $('hCambiar').textContent=F().s+' → Bolívares';
+  $('lblFiatAsk').textContent='Comprar USDT con '+F().s;
+  var m=MONTOS[FIAT]||MONTOS.usd;
+  $('cChips').innerHTML=m.map(function(v){
+    return '<span class="chip" onclick="setCambio('+v+')">'+n0(v)+'</span>'; }).join('');
+  if(!MONTOS[FIAT] || $('cMonto').value==='' ) $('cMonto').value=m[1];
+}
+
+/* ══════════════════ pintar ══════════════════ */
+function pintar(){
+  $('meta').textContent = edad() + ((R.ts&&!R.manual)?' · '+
+    new Date(R.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}):'');
+
+  var A=alta();
+  $('altaVal').textContent = A? nf(A.v)+' Bs' : '—';
+  $('altaCual').textContent = A? A.n : '—';
+  if(A && R.vesBid){
+    var golpe=(A.v/R.vesBid-1)*100;
+    $('altaSub').innerHTML='De las tres referencias que usan los comercios (BCV Dólar, BCV Euro y Binance P2P), '+
+      'hoy la más alta es <b>'+A.n+'</b>. Es la que van a querer aplicarte.<br>'+
+      (golpe>0.5
+        ? '<span style="color:var(--bad)">Cobrarte a esa tasa te sale '+pct(golpe)+' más caro que tu tasa real de Binance.</span>'
+        : (golpe<-0.5
+          ? '<span style="color:var(--good)">Está '+pct(golpe)+' por debajo de tu tasa real: pagar así te favorece.</span>'
+          : '<span style="color:var(--good)">Hoy coincide con tu tasa real de Binance, así que cobrarte a esa tasa no te quita nada.</span>'));
+  } else $('altaSub').textContent='—';
+
+  var prom=promedioMonitor(), maxV=A?A.v:0;
+  var filas=[
+    {n:'Dólar BCV',      e:'oficial',                    v:R.bcvUsd, c:'#e5e7eb'},
+    {n:'Binance P2P',    e:'venta de USDT',              v:R.vesBid, c:'#f0b90b'},
+    {n:'Bybit P2P',      e:'venta de USDT',              v:R.bybit,  c:'#f7a600'},
+    {n:'Dólar Promedio', e:'BCV + Binance + Bybit ÷ 3',  v:prom,     c:'#34d399', noTop:true},
+    {n:'Euro BCV',       e:'oficial',                    v:R.bcvEur, c:'#93c5fd'}
+  ];
+  $('monitor').innerHTML = filas.map(function(f){
+    var top = !f.noTop && f.v && Math.abs(f.v-maxV)<1e-9;
+    return '<div class="mrow'+(top?' top':'')+'">'+
+      '<div class="mi" style="background:'+f.c+'">'+f.n.charAt(0)+'</div>'+
+      '<div class="mn">'+f.n+(top?' <span class="tag t-hot">la alta</span>':'')+'<em>'+f.e+'</em></div>'+
+      '<div class="mv">'+(f.v?nf(f.v):'—')+'</div></div>';
+  }).join('');
+
+  $('p2pBid').textContent = R.vesBid? nf(R.vesBid)+' Bs' : '—';
+
+  function g(a,b){ return (a&&b)? (a/b-1)*100 : null; }
+  var BA=bcvAlta(), hb='';
+  hb+=fila('Binance vs BCV Dólar', pct(g(R.vesBid,R.bcvUsd)),
+        (R.vesBid&&R.bcvUsd)? nf(R.vesBid-R.bcvUsd)+' Bs de diferencia':'');
+  hb+=fila('Binance vs BCV Euro', pct(g(R.vesBid,R.bcvEur)),
+        (R.vesBid&&R.bcvEur)? nf(R.vesBid-R.bcvEur)+' Bs de diferencia':'');
+  hb+=fila('BCV Euro sobre BCV Dólar', pct(g(R.bcvEur,R.bcvUsd)),
+        (R.bcvEur&&R.bcvUsd)? nf(R.bcvEur-R.bcvUsd)+' Bs':'');
+  if(BA) hb+=fila('Binance vs la oficial más alta ('+BA.n+')', pct(g(R.vesBid,BA.v)),
+        'esta es la brecha que importa');
+  hb+=fila('Binance vs promedio monitor', pct(g(R.vesBid,prom)),'');
+  hb+=fila('Spread P2P (compra vs venta)', pct(g(R.vesAsk,R.vesBid)),'cuánto pierdes si compras y vendes');
+  $('brechas').innerHTML=hb;
+
+  var fb=fiatPorBs(), S=F().s, hc='';
+  hc+=fila('Compras USDT con '+S, R.fiatAsk? nf(R.fiatAsk,F().d):'—', S+' por 1 USDT');
+  hc+=fila('Tasa efectiva', fb? nf(fb,4):'—', S+' por 1 Bs');
+  hc+=fila('1.000 Bs te cuestan', fb? nfiat(1000*fb):'—','');
+  hc+=fila('1 USD de poder de compra', R.fiatAsk? nfiat(R.fiatAsk):'—','vía USDT');
+  $('chile').innerHTML=hc;
+
+  if(fb&&R.vesBid){
+    $('bolsillo').innerHTML=[100,500,1000,2000,5000,10000,20000,50000].map(function(v){
+      return fila(n0(v)+' Bs', nfiat(v*fb), nf(v/R.vesBid)+' USD reales'); }).join('');
+  }
+
+  if(R.otros&&R.otros.length){
+    $('otrosEx').innerHTML=R.otros.map(function(o){
+      var mejor = R.vesBid && o.bid>=R.vesBid;
+      var nom=o.n.replace('p2p',' P2P').replace(/^./,function(s){return s.toUpperCase();});
+      return fila(nom+(mejor?' <span class="tag t-ok">mejor</span>':''), nf(o.bid)+' Bs',
+        o.ask>0?'compra a '+nf(o.ask):''); }).join('');
+  }
+
+  ['mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk'].forEach(function(id,i){
+    var v=[R.bcvUsd,R.bcvEur,R.vesBid,R.bybit,R.fiatAsk][i];
+    if(v!=null && document.activeElement!==$(id)) $(id).value=Math.round(v*100)/100;
+  });
+
+  calcSema(); calcPagar(); calcEfectivo(); calcTasa(); calcCambio();
+  pintarGastos(); pintarGrafico();
+  if(!$('sec-ajustes').hidden) pintarCfg();
+}
+
+function fila(k,v,s){
+  return '<div class="row"><div class="k">'+k+'</div><div class="v">'+v+
+    (s?'<small>'+s+'</small>':'')+'</div></div>';
+}
+
+function aplicarManual(){
+  function g(id){ var v=parseFloat($(id).value); return (isFinite(v)&&v>0)?v:null; }
+  R.bcvUsd=g('mBcvUsd')||R.bcvUsd; R.bcvEur=g('mBcvEur')||R.bcvEur;
+  R.vesBid=g('mVesBid')||R.vesBid; R.bybit=g('mBybit')||R.bybit; R.fiatAsk=g('mFiatAsk')||R.fiatAsk;
+  R.manual=true; R.ts=Date.now();
+  localStorage.setItem(LS_R,JSON.stringify(R)); pintar();
+}
+
+/* ══════════════════ SEMÁFORO ══════════════════ */
+function calcSema(){
+  var v=parseFloat($('sVes').value), u=parseFloat($('sUsd').value), out=$('semaOut');
+  if(!isFinite(v)||v<=0||!R.vesBid){
+    out.innerHTML='<div class="sema s-idle"><div class="st">Escribe lo que te cobran</div></div>'; return; }
+  var fb=fiatPorBs(), usdReal=v/R.vesBid;
+  var costo = fb? nfiat(v*fb) : nf(usdReal)+' USD';
+
+  if(isFinite(u)&&u>0){
+    var tasa=v/u, d=(tasa/R.vesBid-1)*100, sobre=usdReal-u;
+    var cls = d>8?'s-bad' : (d>2?'s-warn':'s-good');
+    var tit = d>8?'ABUSIVO' : (d>2?'TE CARGAN DE MÁS':'JUSTO');
+    out.innerHTML='<div class="sema '+cls+'"><div class="st">'+tit+'</div>'+
+      '<div class="sp">'+pct(d)+'</div>'+
+      '<div class="ss">Te aplican <b>'+nf(tasa)+'</b> Bs/USD cuando tu tasa real es <b>'+nf(R.vesBid)+'</b>.<br>'+
+      'Pagas <b>'+nf(usdReal)+' USD</b> por algo de '+nf(u)+' USD → '+
+      (sobre>0.005?'<b>'+nf(sobre)+' USD de más</b>':'sin sobreprecio')+'.<br>'+
+      'Son <b>'+costo+'</b> de tu bolsillo.</div></div>';
+  } else {
+    out.innerHTML='<div class="sema s-idle" style="border-color:rgba(255,197,61,.4)">'+
+      '<div class="st" style="color:var(--acc);font-size:15px">TE CUESTA</div>'+
+      '<div class="sp" style="color:var(--acc)">'+costo+'</div>'+
+      '<div class="ss">'+n0(v)+' Bs = <b>'+nf(usdReal)+' USD</b> reales, a tu tasa de '+nf(R.vesBid)+' Bs.<br>'+
+      'Pon el precio en USD que te dicen y te digo si te están cargando de más.</div></div>';
+  }
+}
+
+/* ══════════════════ PAGAR ══════════════════ */
+function setMonto(v){ $('pMonto').value=v; calcPagar(); }
+
+function calcPagar(){
+  var m=parseFloat($('pMonto').value), mon=$('pMoneda').value, out=$('pOut');
+  if(!isFinite(m)||m<=0||!R.vesBid){ out.innerHTML='<div class="sub">Escribe un monto.</div>'; return; }
+  var fb=fiatPorBs(), ves,usd,fia;
+  if(mon==='ves'){ ves=m; usd=m/R.vesBid; fia=fb?m*fb:null; }
+  else if(mon==='usd'){ usd=m; ves=m*R.vesBid; fia=fb?ves*fb:null; }
+  else { fia=m; ves=fb?m/fb:null; usd=ves?ves/R.vesBid:null; }
+
+  var h='<div style="margin-top:4px">';
+  h+=fila('Bolívares', nf(ves)+' Bs','');
+  h+=fila('Dólares que sales perdiendo', nf(usd)+' USD','a tu tasa real '+nf(R.vesBid));
+  if(fia!=null) h+=fila('En '+F().n.toLowerCase(), nfiat(fia),'vía USDT');
+  h+='<div style="height:8px"></div>';
+  if(R.bcvUsd) h+=fila('Visto a BCV Dólar', nf(ves/R.bcvUsd)+' USD','a '+nf(R.bcvUsd));
+  if(R.bcvEur) h+=fila('Visto a BCV Euro', nf(ves/R.bcvEur)+' USD','a '+nf(R.bcvEur));
+  h+='</div>';
+
+  var BA=bcvAlta();
+  if(BA&&usd){
+    var usdRef=ves/BA.v, dif=usd-usdRef;
+    h+='<div class="verdict '+(Math.abs(dif/usd)<0.02?'v-good':'v-warn')+'" style="margin:14px 0 0">'+
+      '<div class="vt">Te cuesta '+nf(usd)+' USD de tu bolsillo</div>'+
+      '<div class="vs">Con la oficial más alta ('+BA.n+', '+nf(BA.v)+') ese mismo cobro se ve como '+
+      nf(usdRef)+' USD. '+(dif>0.005
+        ? 'La diferencia de '+nf(dif)+' USD la absorbes tú, porque tus bolívares te salieron a '+nf(R.vesBid)+'.'
+        : (dif<-0.005 ? 'Te favorece: '+nf(-dif)+' USD menos que la referencia oficial.'
+                      : 'Coincide con la referencia oficial.'))+'</div></div>';
+  }
+  out.innerHTML=h;
+}
+
+/* ══════════════════ EFECTIVO EN DÓLARES ══════════════════ */
+function calcEfectivo(){
+  var m=parseFloat($('eMonto').value), mon=$('eMon').value, out=$('eOut');
+  var bil=parseFloat($('eBillete').value), prem=(parseFloat($('ePrem').value)||0)/100;
+  var tv=parseFloat($('eTasaV').value);
+  if(!isFinite(m)||m<=0||!R.vesBid){ out.innerHTML='<div class="sub">Escribe la cuenta.</div>'; return; }
+
+  var tasaEfec = R.vesBid*(1+prem);          // Bs que te reconocen por 1 USD en billete
+  var tasaVuelto = (isFinite(tv)&&tv>0)? tv : tasaEfec;
+  var ves = (mon==='ves')? m : m*tasaEfec;   // la cuenta llevada a Bs
+  var usdNec = ves/tasaEfec;
+  var nBil = Math.ceil(usdNec/bil);
+  var entregado = nBil*bil;
+  var vueltoUsd = entregado - usdNec;
+  var vueltoVes = vueltoUsd*tasaVuelto;
+  var fb=fiatPorBs();
+
+  /* lo que pierdes si el vuelto viene en Bs a una tasa peor que tu tasa real */
+  var perdida = vueltoUsd>0 ? vueltoUsd - (vueltoVes/R.vesBid) : 0;
+  var costoTotal = usdNec + Math.max(0,perdida);
+
+  var h='';
+  if(vueltoUsd<0.01){
+    h+='<div class="verdict v-good"><div class="vt">Pago exacto</div>'+
+       '<div class="vs">'+nBil+' billete'+(nBil>1?'s':'')+' de '+bil+' USD cubren la cuenta sin vuelto.</div></div>';
+  } else {
+    var grave = perdida/usdNec > 0.03;
+    h+='<div class="verdict '+(grave?'v-bad':'v-warn')+'">'+
+      '<div class="vt">Te queda '+nf(vueltoUsd)+' USD de vuelto</div>'+
+      '<div class="vs">Entregas '+nBil+' × '+bil+' USD = '+nf(entregado)+' USD por una cuenta de '+
+      nf(usdNec)+' USD.'+
+      (perdida>0.005
+        ? ' Si te devuelven en bolívares a '+nf(tasaVuelto)+', recuperas solo '+nf(vueltoVes/R.vesBid)+
+          ' USD de ese vuelto: <b>pierdes '+nf(perdida)+' USD</b>.'
+        : ' A esa tasa el vuelto no te castiga.')+
+      ' Si no tienen cambio y lo pierdes entero, son '+nf(vueltoUsd)+' USD.</div></div>';
+  }
+
+  h+='<div class="card flat" style="margin-bottom:0">';
+  h+=fila('La cuenta en bolívares', n0(ves)+' Bs','');
+  h+=fila('Tasa que te reconocen por el billete', nf(tasaEfec)+' Bs',
+      prem? pct(prem*100)+' sobre tu tasa P2P' : 'igual a tu tasa P2P');
+  h+=fila('Dólares que cubre la cuenta', nf(usdNec)+' USD','');
+  h+=fila('Billetes a entregar', nBil+' × '+bil+' USD = '+nf(entregado)+' USD','');
+  if(vueltoUsd>=0.01){
+    h+=fila('Vuelto que te deben', nf(vueltoUsd)+' USD', n0(vueltoVes)+' Bs a '+nf(tasaVuelto));
+    h+='<div class="row"><div class="k">Costo real de la compra</div><div class="v" style="color:'+
+       (perdida>0.005?'var(--bad)':'var(--good)')+'">'+nf(costoTotal)+' USD'+
+       (fb?'<small>'+nfiat(costoTotal*R.vesBid*fb)+'</small>':'')+'</div></div>';
+  }
+  h+='</div>';
+  h+='<div class="hint">Con el premio en 0 la app asume que el billete vale lo mismo que un USDT. '+
+     'Si allá te ofrecen más por el efectivo, sube el premio y vuelve a mirar el número.</div>';
+  out.innerHTML=h;
+}
+
+/* ══════════════════ DETECTOR ══════════════════ */
+function calcTasa(src){
+  var u=parseFloat($('tUsd').value), v=parseFloat($('tVes').value), t=parseFloat($('tTasa').value);
+  var out=$('tOut'), tasa=null, usd=null, ves=null;
+
+  if(isFinite(u)&&u>0&&isFinite(v)&&v>0&&src!=='tasa'){
+    tasa=v/u; usd=u; ves=v;
+    if(document.activeElement!==$('tTasa')) $('tTasa').value=Math.round(tasa*100)/100;
+  } else if(isFinite(t)&&t>0){
+    tasa=t;
+    if(isFinite(u)&&u>0){ usd=u; ves=u*t;
+      if(src==='tasa'&&document.activeElement!==$('tVes')) $('tVes').value=Math.round(ves*100)/100; }
+    else if(isFinite(v)&&v>0){ ves=v; usd=v/t;
+      if(src==='tasa'&&document.activeElement!==$('tUsd')) $('tUsd').value=Math.round(usd*100)/100; }
+  }
+  if(!tasa||!R.vesBid){ out.innerHTML='<div class="sub">Llena dos de los tres campos.</div>'; return; }
+
+  var dP2P=(tasa/R.vesBid-1)*100, A=alta(), fb=fiatPorBs(), cls,tit;
+  if(dP2P>8){ cls='v-bad'; tit='Tasa abusiva'; }
+  else if(dP2P>2){ cls='v-warn'; tit='Te cargan de más'; }
+  else if(dP2P>-2){ cls='v-good'; tit='Tasa justa'; }
+  else { cls='v-good'; tit='Buena tasa para ti'; }
+
+  var h='<div class="verdict '+cls+'"><div class="vt">'+tit+' · '+nf(tasa)+' Bs/USD</div><div class="vs">'+
+    'Está '+pct(dP2P)+' respecto a tu tasa real de Binance ('+nf(R.vesBid)+' Bs).';
+  if(usd){
+    var usdReal=ves/R.vesBid, sobre=usdReal-usd;
+    h+=' Pagas '+nf(usdReal)+' USD por algo marcado en '+nf(usd)+' USD → <b>'+
+       nf(Math.abs(sobre))+' USD '+(sobre>=0?'de más':'de menos')+'</b>.';
+  }
+  h+='</div></div><div class="card flat" style="margin-bottom:0">';
+  h+='<div class="row"><div class="k">vs Binance P2P '+nf(R.vesBid)+'</div><div class="v" style="color:'+
+     (dP2P>2?'var(--bad)':'var(--good)')+'">'+pct(dP2P)+'</div></div>';
+  if(R.bcvUsd) h+=fila('vs BCV Dólar '+nf(R.bcvUsd), pct((tasa/R.bcvUsd-1)*100),'');
+  if(R.bcvEur) h+=fila('vs BCV Euro '+nf(R.bcvEur), pct((tasa/R.bcvEur-1)*100),'');
+  if(A && A.k!=='p2p') h+=fila('vs la más alta ('+A.n+')', pct((tasa/A.v-1)*100),'');
+  h+=fila('Por cada 100 USD de compra pierdes', nf(Math.max(0,100*tasa/R.vesBid-100))+' USD','');
+  if(ves&&fb) h+=fila('Ese cobro en '+F().s, nfiat(ves*fb),'');
+  if(usd) h+='<div class="row"><div class="k">Precio justo a tu tasa</div><div class="v" style="color:var(--good)">'+
+     n0(usd*R.vesBid)+' Bs</div></div>';
+  h+='</div>';
+  out.innerHTML=h;
+}
+
+/* ══════════════════ CAMBIAR ══════════════════ */
+function setCambio(v){ $('cMonto').value=v; calcCambio(); }
+
+function calcCambio(){
+  var m=parseFloat($('cMonto').value), de=$('cDesde').value;
+  var fee=(parseFloat($('cFee').value)||0)/100;
+  var ch=$('cChain'), co=$('cComp');
+  if(!isFinite(m)||m<=0||!R.fiatAsk||!R.vesBid){
+    ch.innerHTML='<div class="sub">—</div>'; co.innerHTML='<div class="sub">—</div>'; return; }
+
+  var fia,usdt,ves;
+  if(de==='fiat'){ fia=m; usdt=(fia/R.fiatAsk)*(1-fee); ves=usdt*R.vesBid; }
+  else if(de==='usdt'){ usdt=m; fia=usdt*R.fiatAsk/(1-fee); ves=usdt*R.vesBid; }
+  else { ves=m; usdt=ves/R.vesBid; fia=usdt*R.fiatAsk/(1-fee); }
+
+  ch.innerHTML=
+    '<div class="step"><div class="lbl">1 · Pones en Binance</div><div class="mid">'+nfiat(fia)+'</div>'+
+      '<div class="sub">transferencia desde tu banco</div></div>'+
+    '<div class="step"><div class="lbl">2 · Compras USDT (P2P '+F().s+')</div><div class="mid">'+nf(usdt)+' USDT</div>'+
+      '<div class="sub">a '+nf(R.fiatAsk,F().d)+' '+F().s+' por USDT'+
+      (fee?' · menos '+nf(fee*100,1)+'% de holgura':'')+'</div></div>'+
+    '<div class="step"><div class="lbl">3 · Vendes USDT (P2P Venezuela)</div>'+
+      '<div class="mid" style="color:var(--acc)">'+n0(ves)+' Bs</div>'+
+      '<div class="sub">a '+nf(R.vesBid)+' Bs por USDT</div></div>';
+
+  var BA=bcvAlta(), h='';
+  h+=fila('Tasa efectiva', nf(ves/fia,3)+' Bs','por cada '+F().s);
+  h+=fila('1 dólar de poder de compra', nfiat(fia/usdt),'');
+  if(R.bcvUsd) h+=fila('Si te cambiaran a BCV Dólar', n0(usdt*R.bcvUsd)+' Bs','');
+  if(R.bcvEur) h+=fila('Si te cambiaran a BCV Euro', n0(usdt*R.bcvEur)+' Bs','');
+  if(R.paralelo) h+=fila('Si te cambiaran a paralelo monitor', n0(usdt*R.paralelo)+' Bs','');
+  if(BA){
+    var ref=usdt*BA.v, ventaja=(ves/ref-1)*100;
+    h+='<div class="verdict '+(ventaja>=0?'v-good':'v-warn')+'" style="margin:14px 0 0">'+
+      '<div class="vt">'+(ventaja>=0?'La ruta P2P te conviene':'Ojo con esta ruta')+'</div>'+
+      '<div class="vs">Por esta ruta recibes '+pct(ventaja)+' de bolívares respecto a que te cambiaran a '+
+      BA.n+' ('+nf(BA.v)+'), que es la oficial más alta. Sobre '+nfiat(fia)+' son '+
+      n0(Math.abs(ves-ref))+' Bs de diferencia.</div></div>';
+  }
+  co.innerHTML=h;
+}
+
+/* ══════════════════ GASTOS ══════════════════ */
+function pushGasto(ves,tasa,desc){
+  if(!isFinite(ves)||ves<=0) return false;
+  GA.push({ id:Date.now()+''+Math.round(Math.random()*999), ts:Date.now(), ves:ves,
+            tasa:(isFinite(tasa)&&tasa>0)?tasa:null, desc:desc||'',
+            vesBid:R.vesBid||null, fiatAsk:R.fiatAsk||null, fiat:FIAT });
+  localStorage.setItem(LS_G,JSON.stringify(GA)); pintarGastos(); return true;
+}
+function guardarGasto(){
+  var v=parseFloat($('sVes').value), u=parseFloat($('sUsd').value);
+  var tasa=(isFinite(u)&&u>0&&isFinite(v))? v/u : null;
+  if(pushGasto(v,tasa,$('sDesc').value.trim())){
+    $('sVes').value=''; $('sUsd').value=''; $('sDesc').value=''; calcSema(); tab('gastos');
+  }
+}
+function guardarGastoManual(){
+  if(pushGasto(parseFloat($('gVes').value), parseFloat($('gTasa').value), $('gDesc').value.trim())){
+    $('gVes').value=''; $('gTasa').value=''; $('gDesc').value='';
+  }
+}
+function borrarGasto(id){
+  GA=GA.filter(function(g){return g.id!==id;});
+  localStorage.setItem(LS_G,JSON.stringify(GA)); pintarGastos();
+}
+function borrarGastos(){ GA=[]; localStorage.setItem(LS_G,'[]'); pintarGastos(); }
+
+function calcGasto(g){
+  var bid=g.vesBid||R.vesBid, ask=g.fiatAsk||R.fiatAsk;
+  var usd = bid? g.ves/bid : null;
+  var fia = (bid&&ask)? g.ves*(ask/bid) : null;
+  var sobreVes=null, sobreUsd=null;
+  if(g.tasa && bid){ sobreVes = g.ves*(1 - bid/g.tasa); sobreUsd = sobreVes/bid; }
+  return {usd:usd, fia:fia, fiatCode:g.fiat||FIAT, sobreVes:sobreVes, sobreUsd:sobreUsd};
+}
+
+function pintarGastos(){
+  if(!GA.length){
+    $('gTotalFiat').textContent='—';
+    $('gTotalSub').textContent='Registra tus pagos desde el semáforo y se van sumando aquí.';
+    $('gResumen').innerHTML='<div class="sub">Todavía no has registrado gastos.</div>';
+    $('gLista').innerHTML='<div class="sub">Sin movimientos.</div>';
+    return;
+  }
+  var tVes=0,tUsd=0,tFia=0,tSobreU=0,tSobreV=0,nCon=0;
+  GA.forEach(function(g){ var c=calcGasto(g);
+    tVes+=g.ves; if(c.usd) tUsd+=c.usd; if(c.fia) tFia+=c.fia;
+    if(c.sobreUsd!=null){ tSobreU+=c.sobreUsd; tSobreV+=c.sobreVes; nCon++; } });
+
+  $('gTotalFiat').textContent = tFia? nfiat(tFia) : nf(tUsd)+' USD';
+  $('gTotalSub').textContent = GA.length+' movimiento'+(GA.length>1?'s':'')+' · '+
+    n0(tVes)+' Bs · '+nf(tUsd)+' USD reales';
+
+  var h='';
+  h+=fila('Total en bolívares', n0(tVes)+' Bs','');
+  h+=fila('Total en dólares reales', nf(tUsd)+' USD','a tu tasa P2P de cada día');
+  if(tFia) h+=fila('Total en '+F().n.toLowerCase(), nfiat(tFia),'');
+  if(nCon){
+    h+='<div class="row"><div class="k">Sobreprecio acumulado</div><div class="v" style="color:'+
+      (tSobreU>0.01?'var(--bad)':'var(--good)')+'">'+nf(tSobreU)+' USD<small>'+n0(tSobreV)+
+      ' Bs · sobre '+nCon+' cobro'+(nCon>1?'s':'')+' con tasa registrada</small></div></div>';
+    h+=fila('Promedio de sobreprecio', pct(tUsd? (tSobreU/(tUsd-tSobreU))*100 : null),'');
+  } else {
+    h+='<div class="hint" style="margin-top:8px">Anota la tasa que te aplicaron en cada gasto para ver cuánto te sobrecobraron en total.</div>';
+  }
+  $('gResumen').innerHTML=h;
+
+  $('gLista').innerHTML = GA.slice().reverse().map(function(g){
+    var c=calcGasto(g), fecha=new Date(g.ts).toLocaleDateString('es-CL',{day:'2-digit',month:'short'});
+    var hora=new Date(g.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+    var meta=fecha+' '+hora + (g.tasa?' · tasa '+nf(g.tasa):'') +
+      (c.sobreUsd>0.005?' · <span style="color:var(--bad)">+'+nf(c.sobreUsd)+' USD de más</span>':'');
+    return '<div class="gitem"><div class="gd"><div class="gn">'+
+      (g.desc?esc(g.desc):'Gasto')+'</div><div class="gm">'+meta+'</div></div>'+
+      '<div class="gv"><b>'+n0(g.ves)+' Bs</b><small>'+
+      (c.fia?nf(c.fia,FIATS[c.fiatCode].d)+' '+FIATS[c.fiatCode].s:nf(c.usd)+' USD')+'</small></div>'+
+      '<button class="gx" onclick="borrarGasto(\''+g.id+'\')">&times;</button></div>';
+  }).join('');
+}
+
+function exportarGastos(){
+  if(!GA.length) return;
+  var l=['fecha,descripcion,bolivares,tasa_aplicada,usd_real,moneda,monto_moneda,sobreprecio_usd'];
+  GA.forEach(function(g){ var c=calcGasto(g);
+    l.push([new Date(g.ts).toISOString(), '"'+(g.desc||'').replace(/"/g,'""')+'"',
+      g.ves, g.tasa||'', c.usd?c.usd.toFixed(4):'', (c.fiatCode||'').toUpperCase(),
+      c.fia?c.fia.toFixed(2):'', c.sobreUsd!=null?c.sobreUsd.toFixed(4):''].join(',')); });
+  var b=new Blob([l.join('\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download='gastos-venezuela.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
+}
+
+/* ══════════════════ HISTORIAL LOCAL ══════════════════ */
+function hist(){ return JSON.parse(localStorage.getItem(LS_H)||'[]'); }
+function guardarHist(){
+  if(R.manual||!R.vesBid) return;
+  var h=hist(), hoy=new Date().toISOString().slice(0,10);
+  var e={d:hoy,bcvUsd:R.bcvUsd,bcvEur:R.bcvEur,ves:R.vesBid,bybit:R.bybit,fiat:R.fiatAsk,fc:FIAT};
+  var i=-1; for(var k=0;k<h.length;k++){ if(h[k].d===hoy){ i=k; break; } }
+  if(i>=0) h[i]=e; else h.push(e);
+  h.sort(function(a,b){ return a.d<b.d?-1:1; });
+  localStorage.setItem(LS_H,JSON.stringify(h.slice(-400)));
+}
+function borrarHist(){ localStorage.removeItem(LS_H); pintarGrafico(); }
+
+/* serie combinada: histórico oficial + mis lecturas P2P */
+function serie(){
+  var map={};
+  BH.rows.forEach(function(r){ map[r.d]={d:r.d,u:r.u,e:r.e,p:null,b:null}; });
+  hist().forEach(function(x){
+    var o=map[x.d]||(map[x.d]={d:x.d,u:null,e:null,p:null,b:null});
+    if(x.bcvUsd) o.u=x.bcvUsd; if(x.bcvEur) o.e=x.bcvEur;
+    o.p=x.ves||null; o.b=x.bybit||null;
+  });
+  return Object.keys(map).sort().map(function(k){
+    var o=map[k];
+    o.g = (o.p && Math.max(o.u||0,o.e||0)) ? (o.p/Math.max(o.u||0,o.e||0)-1)*100 : null;
+    return o;
+  });
+}
+
+/* ══════════════════ GRÁFICO ══════════════════ */
+var SERIES=[
+  {k:'u', n:'BCV Dólar', c:'#60a5fa', on:true},
+  {k:'e', n:'BCV Euro',  c:'#a78bfa', on:true},
+  {k:'p', n:'Binance P2P', c:'#ffc53d', on:true},
+  {k:'b', n:'Bybit P2P', c:'#fb923c', on:false}
+];
+var RANGOS=[{k:7,n:'7D'},{k:30,n:'1M'},{k:90,n:'3M'},{k:365,n:'1A'},{k:0,n:'MAX'}];
+var rango=30, datos=[], geo=null;
+
+function pintarGrafico(){
+  $('rangos').innerHTML=RANGOS.map(function(r){
+    return '<span class="chip" role="button" aria-pressed="'+(r.k===rango)+'" onclick="setRango('+r.k+')">'+r.n+'</span>'; }).join('');
+  $('legend').innerHTML=SERIES.map(function(s,i){
+    return '<button class="lg" aria-pressed="'+s.on+'" onclick="toggleSerie('+i+')">'+
+      '<i style="background:'+s.c+'"></i>'+s.n+'</button>'; }).join('')+
+    '<button class="lg" aria-pressed="true" style="cursor:default"><i style="background:#34d399"></i>Brecha %</button>';
+
+  var todo=serie();
+  datos = rango? todo.slice(-rango) : todo;
+  dibujar();
+
+  var conP=todo.filter(function(x){return x.p;}).length;
+  $('chartNota').innerHTML='BCV Dólar y Euro vienen del histórico oficial ('+todo.length+' días). '+
+    'Las series P2P y la brecha se arman con tus propias lecturas: llevas <b>'+conP+
+    '</b> día'+(conP===1?'':'s')+' registrado'+(conP===1?'':'s')+' — cada vez que abres la app se guarda el día.';
+  $('datosInfo').innerHTML='Histórico oficial: '+BH.rows.length+' días'+
+    (BH.ts?' (bajado '+new Date(BH.ts).toLocaleDateString('es-CL')+')':'')+
+    '.<br>Lecturas propias: '+hist().length+' días.<br>Gastos: '+GA.length+'.';
+
+  var BA=bcvAlta();
+  var gap=(R.vesBid&&BA)?(R.vesBid/BA.v-1)*100:null;
+  $('prGap').textContent = gap!=null? pct(gap):'—';
+  $('prGapSub').textContent = (gap!=null)
+    ? 'Binance '+nf(R.vesBid)+' Bs vs '+BA.n+' '+nf(BA.v)+' Bs. Mientras más ancha la brecha, más sobreprecio te pueden meter cobrando "a tasa oficial".'
+    : '—';
+
+  var t=tendencia();
+  $('prRateHint').textContent = t
+    ? 'Estimado del histórico: '+pct(t.diario)+' al día ('+t.n+' días, '+t.serie+'). Puedes cambiarlo.'
+    : 'Sin datos suficientes todavía. Pon un valor a mano.';
+  if(t && !$('prRate').dataset.touched) $('prRate').value=Math.round(t.diario*1000)/1000;
+  calcProy();
+}
+
+function setRango(k){ rango=k; pintarGrafico(); }
+function toggleSerie(i){ SERIES[i].on=!SERIES[i].on; pintarGrafico(); }
+
+function dibujar(){
+  var box=$('chartBox'), svg=$('chartSvg');
+  var w=Math.max(240, box.clientWidth||320);
+  var padL=4, padR=54, padT=8, hMain=196, gap=10, hInd=58, xAx=16;
+  var h=padT+hMain+gap+hInd+xAx;
+  svg.setAttribute('viewBox','0 0 '+w+' '+h);
+  svg.setAttribute('height',h);
+
+  var pts=datos;
+  if(pts.length<2){
+    svg.innerHTML='<text x="'+(w/2)+'" y="'+(h/2)+'" fill="#6b7aa3" font-size="12" text-anchor="middle">'+
+      'sin datos en este rango</text>';
+    geo=null; return;
+  }
+  var x0=padL, x1=w-padR, W=x1-x0;
+  var vis=SERIES.filter(function(s){return s.on;});
+
+  var vals=[];
+  pts.forEach(function(p){ vis.forEach(function(s){ if(p[s.k]>0) vals.push(p[s.k]); }); });
+  if(!vals.length){
+    svg.innerHTML='<text x="'+(w/2)+'" y="'+(h/2)+'" fill="#6b7aa3" font-size="12" text-anchor="middle">'+
+      'activa alguna serie</text>'; geo=null; return;
+  }
+  var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+  var log = (mn>0 && mx/mn>6);
+  var lo = log?Math.log(mn):mn, hi = log?Math.log(mx):mx;
+  if(hi===lo){ hi=lo+1; }
+  var padv=(hi-lo)*0.08; lo-=padv; hi+=padv;
+
+  function X(i){ return x0 + (pts.length===1?W/2: (i/(pts.length-1))*W); }
+  function Y(v){ var t=((log?Math.log(v):v)-lo)/(hi-lo); return padT+hMain-t*hMain; }
+
+  /* brecha (pane inferior) */
+  var gv=pts.map(function(p){return p.g;}).filter(function(v){return v!=null;});
+  var gmn=gv.length?Math.min.apply(null,gv):0, gmx=gv.length?Math.max.apply(null,gv):1;
+  if(gmx===gmn){ gmx=gmn+1; }
+  var gy0=padT+hMain+gap;
+  function GY(v){ return gy0+hInd-((v-gmn)/(gmx-gmn))*hInd; }
+
+  var s='';
+  /* grilla + etiquetas eje Y */
+  for(var i=0;i<=3;i++){
+    var yy=padT+(hMain/3)*i, vv=log?Math.exp(hi-((hi-lo)/3)*i):(hi-((hi-lo)/3)*i);
+    s+='<line x1="'+x0+'" y1="'+yy+'" x2="'+x1+'" y2="'+yy+'" stroke="#2a3765" stroke-width="1"/>';
+    s+='<text x="'+(x1+5)+'" y="'+(yy+4)+'" fill="#6b7aa3" font-size="10">'+nf(vv,vv>100?0:2)+'</text>';
+  }
+  s+='<line x1="'+x0+'" y1="'+gy0+'" x2="'+x1+'" y2="'+gy0+'" stroke="#2a3765" stroke-width="1"/>';
+  s+='<line x1="'+x0+'" y1="'+(gy0+hInd)+'" x2="'+x1+'" y2="'+(gy0+hInd)+'" stroke="#2a3765" stroke-width="1"/>';
+  s+='<text x="'+(x1+5)+'" y="'+(gy0+9)+'" fill="#6b7aa3" font-size="10">'+nf(gmx,1)+'%</text>';
+  s+='<text x="'+(x1+5)+'" y="'+(gy0+hInd)+'" fill="#6b7aa3" font-size="10">'+nf(gmn,1)+'%</text>';
+  s+='<text x="'+x0+'" y="'+(gy0-3)+'" fill="#6b7aa3" font-size="9">BRECHA P2P vs BCV</text>';
+
+  /* series principales */
+  vis.forEach(function(sr){
+    var d='', abierto=false;
+    pts.forEach(function(p,i){
+      var v=p[sr.k];
+      if(v>0){ d+=(abierto?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '; abierto=true; }
+      else abierto=false;
+    });
+    if(d) s+='<path d="'+d+'" fill="none" stroke="'+sr.c+'" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+
+  /* brecha */
+  if(gv.length){
+    var dg='', ab=false;
+    pts.forEach(function(p,i){
+      if(p.g!=null){ dg+=(ab?'L':'M')+X(i).toFixed(1)+' '+GY(p.g).toFixed(1)+' '; ab=true; } else ab=false; });
+    if(gv.length===1){
+      var only=pts.filter(function(p){return p.g!=null;})[0];
+      s+='<circle cx="'+X(pts.indexOf(only))+'" cy="'+GY(only.g)+'" r="3" fill="#34d399"/>';
+    } else s+='<path d="'+dg+'" fill="none" stroke="#34d399" stroke-width="1.6"/>';
+  }
+
+  /* eje X */
+  var nlab=Math.min(4,pts.length);
+  var largo = pts.length>200;   /* en rangos de años el día no aporta: mes/año */
+  for(var k=0;k<nlab;k++){
+    var idx=Math.round(k*(pts.length-1)/(nlab-1||1));
+    var dd=pts[idx].d.split('-');
+    var anc = k===0?'start':(k===nlab-1?'end':'middle');
+    s+='<text x="'+X(idx)+'" y="'+(h-3)+'" fill="#6b7aa3" font-size="10" text-anchor="'+anc+'">'+
+       (largo? dd[1]+'/'+dd[0].slice(2) : dd[2]+'/'+dd[1])+'</text>';
+  }
+  s+='<g id="cross"></g>';
+  svg.innerHTML=s;
+  geo={x0:x0,x1:x1,W:W,pts:pts,X:X,Y:Y,GY:GY,h:h,padT:padT,hMain:hMain,gy0:gy0,hInd:hInd,vis:vis};
+  leer(pts.length-1);
+}
+
+function leer(i){
+  if(!geo) return;
+  var p=geo.pts[i]; if(!p) return;
+  var g=document.getElementById('cross');
+  if(g){
+    var x=geo.X(i), s='<line x1="'+x+'" y1="'+geo.padT+'" x2="'+x+'" y2="'+(geo.gy0+geo.hInd)+
+      '" stroke="#6b7aa3" stroke-width="1" stroke-dasharray="3 3"/>';
+    geo.vis.forEach(function(sr){ if(p[sr.k]>0)
+      s+='<circle cx="'+x+'" cy="'+geo.Y(p[sr.k])+'" r="3.2" fill="'+sr.c+'" stroke="#0b1020" stroke-width="1.5"/>'; });
+    if(p.g!=null) s+='<circle cx="'+x+'" cy="'+geo.GY(p.g)+'" r="3" fill="#34d399" stroke="#0b1020" stroke-width="1.5"/>';
+    g.innerHTML=s;
+  }
+  var f=p.d.split('-'), out='<b>'+f[2]+'/'+f[1]+'/'+f[0]+'</b>';
+  geo.vis.forEach(function(sr){ if(p[sr.k]>0)
+    out+=' &nbsp;<span style="color:'+sr.c+'">'+sr.n+'</span> <b>'+nf(p[sr.k])+'</b>'; });
+  if(p.g!=null) out+=' &nbsp;<span style="color:#34d399">Brecha</span> <b>'+pct(p.g)+'</b>';
+  $('readout').innerHTML=out;
+}
+
+function desdeEvento(ev){
+  if(!geo) return;
+  var r=$('chartSvg').getBoundingClientRect();
+  var cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;
+  var esc=(geo.x1+54)/r.width;
+  var xv=cx*esc;
+  var i=Math.round(((xv-geo.x0)/geo.W)*(geo.pts.length-1));
+  i=Math.max(0,Math.min(geo.pts.length-1,i));
+  leer(i);
+}
+
+/* ══════════════════ PROYECCIÓN ══════════════════ */
+function tendencia(){
+  var s=serie();
+  var conP=s.filter(function(x){return x.p>0;});
+  var usar, nombre;
+  if(conP.length>=3){ usar=conP.map(function(x){return {d:x.d,v:x.p};}); nombre='P2P propio'; }
+  else { usar=s.filter(function(x){return x.u>0;}).slice(-45).map(function(x){return {d:x.d,v:x.u};});
+         nombre='BCV oficial'; }
+  if(usar.length<3) return null;
+  var t0=new Date(usar[0].d).getTime();
+  var xs=usar.map(function(x){return (new Date(x.d).getTime()-t0)/86400000;});
+  var ys=usar.map(function(x){return Math.log(x.v);});
+  var n=xs.length, sx=0, sy=0, sxy=0, sxx=0;
+  for(var i=0;i<n;i++){ sx+=xs[i]; sy+=ys[i]; sxy+=xs[i]*ys[i]; sxx+=xs[i]*xs[i]; }
+  var den=n*sxx-sx*sx; if(!den) return null;
+  var b=(n*sxy-sx*sy)/den;
+  if(xs[n-1]-xs[0] < 2) return null;
+  return { diario:(Math.exp(b)-1)*100, n:n, serie:nombre };
+}
+
+function calcProy(){
+  if($('prRate').value!=='') $('prRate').dataset.touched='1';
+  var r=(parseFloat($('prRate').value)||0)/100, out=$('prOut');
+  if(!R.vesBid){ out.innerHTML=''; return; }
+  var fb=fiatPorBs(), h='<div style="margin-top:2px">';
+  [7,15,30,60].forEach(function(d){
+    var f=R.vesBid*Math.pow(1+r,d);
+    h+=fila('En '+d+' días', nf(f)+' Bs', R.fiatAsk? '1 Bs = '+nf(R.fiatAsk/f,4)+' '+F().s:'');
+  });
+  h+='</div>';
+  var f30=R.vesBid*Math.pow(1+r,30);
+  h+='<div class="verdict '+(r>0.004?'v-warn':'v-good')+'" style="margin:14px 0 0">'+
+    '<div class="vt">'+(r>0?'Los bolívares que guardes pierden valor':'Escenario estable')+'</div>'+
+    '<div class="vs">A '+pct(r*100)+' diario, 100.000 Bs quietos hoy equivaldrán a '+
+    n0(100000*R.vesBid/f30)+' Bs de hoy en 30 días. Cambia solo lo que vayas a gastar.</div></div>';
+  out.innerHTML=h;
+}
+
+/* ══════════════════ AJUSTES · AUTO-REFRESCO · AVISOS ══════════════════ */
+var LS_C='paralelo.cfg';
+var CFG = JSON.parse(localStorage.getItem(LS_C)||'null') ||
+  {int:0, noti:0, up:1.5, dn:1.5, gap:20, cool:3, ref:null, last:null};
+var MIN_INT=15, MIN_COOL=1, nConsultas=0, timerAuto=null;
+
+function guardarCfg(){
+  CFG.int = Math.max(0, parseInt($('cfInt').value,10)||0);
+  if(CFG.int>0) CFG.int=Math.max(MIN_INT, CFG.int);
+  CFG.noti = parseInt($('cfNoti').value,10)||0;
+  CFG.up  = Math.abs(parseFloat($('cfUp').value))  || 1.5;
+  CFG.dn  = Math.abs(parseFloat($('cfDn').value))  || 1.5;
+  CFG.gap = Math.abs(parseFloat($('cfGap').value)) || 20;
+  CFG.cool= Math.max(MIN_COOL, parseFloat($('cfCool').value)||3);
+  localStorage.setItem(LS_C,JSON.stringify(CFG));
+  armarTimer(); pintarCfg();
+}
+
+function pintarCfg(){
+  $('cfInt').value=CFG.int; $('cfNoti').value=CFG.noti;
+  $('cfUp').value=CFG.up; $('cfDn').value=CFG.dn; $('cfGap').value=CFG.gap; $('cfCool').value=CFG.cool;
+  $('cfUlt').textContent = R.ts? new Date(R.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}) : '—';
+  $('cfCnt').textContent = nConsultas;
+  $('cfRef').textContent = CFG.ref? nf(CFG.ref)+' Bs' : (R.vesBid? nf(R.vesBid)+' Bs':'—');
+  $('cfLast').textContent = CFG.last? new Date(CFG.last).toLocaleString('es-CL',
+    {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'nunca';
+  var p = ('Notification' in window)? Notification.permission : 'no-soportado';
+  $('cfPerm').innerHTML = p==='granted'
+    ? 'Permiso concedido por el navegador.'
+    : (p==='denied'
+      ? '<span style="color:var(--bad)">El navegador tiene los avisos bloqueados para este sitio. Habilítalos en los ajustes del sitio.</span>'
+      : (p==='no-soportado'
+        ? 'Este navegador no soporta notificaciones.'
+        : 'Al encenderlas el navegador te va a pedir permiso.'));
+}
+
+function pedirPermiso(){
+  guardarCfg();
+  if(CFG.noti && 'Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission().then(pintarCfg);
+  }
+}
+
+function notificar(titulo, cuerpo){
+  if(!CFG.noti) return false;
+  if(!('Notification' in window) || Notification.permission!=='granted') return false;
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(function(reg){
+        reg.showNotification(titulo,{body:cuerpo,icon:'./icon.svg',badge:'./icon.svg',tag:'paralelo-tasa'});
+      }).catch(function(){ new Notification(titulo,{body:cuerpo}); });
+    } else new Notification(titulo,{body:cuerpo});
+  }catch(e){ return false; }
+  return true;
+}
+
+function probarNoti(){
+  guardarCfg();
+  if(!('Notification' in window)){ alert('Este navegador no soporta notificaciones.'); return; }
+  if(Notification.permission!=='granted'){
+    Notification.requestPermission().then(function(p){
+      pintarCfg();
+      if(p==='granted') notificar('Paralelo','Los avisos quedaron activos. Así se van a ver.');
+      else alert('El navegador no dio permiso para notificar.');
+    });
+    return;
+  }
+  if(!CFG.noti){ $('cfNoti').value=1; guardarCfg(); }
+  notificar('Paralelo','Los avisos quedaron activos. Así se van a ver.');
+}
+
+/* dispara solo al cruzar el umbral, con espera mínima entre avisos */
+function revisarAvisos(){
+  if(!CFG.noti || !R.vesBid) return;
+  if(CFG.ref==null){ CFG.ref=R.vesBid; localStorage.setItem(LS_C,JSON.stringify(CFG)); return; }
+  var ahora=Date.now();
+  if(CFG.last && (ahora-CFG.last) < CFG.cool*3600*1000) return;
+
+  var d=(R.vesBid/CFG.ref-1)*100, BA=bcvAlta();
+  var brecha = BA? (R.vesBid/BA.v-1)*100 : null;
+  var t=null, c=null;
+
+  if(d >= CFG.up){
+    t='El P2P subió '+pct(d);
+    c='Binance está en '+nf(R.vesBid)+' Bs (venías de '+nf(CFG.ref)+'). Tus bolívares valen menos: cambia solo lo que vayas a gastar.';
+  } else if(d <= -CFG.dn){
+    t='El P2P bajó '+pct(d);
+    c='Binance está en '+nf(R.vesBid)+' Bs (venías de '+nf(CFG.ref)+'). Buen momento si te toca cambiar.';
+  } else if(brecha!=null && brecha >= CFG.gap){
+    t='Brecha alta: '+pct(brecha);
+    c='Binance '+nf(R.vesBid)+' vs '+BA.n+' '+nf(BA.v)+'. Cuidado con quien te cobre "a tasa oficial".';
+  }
+  if(t && notificar(t,c)){
+    CFG.last=ahora; CFG.ref=R.vesBid;
+    localStorage.setItem(LS_C,JSON.stringify(CFG));
+    pintarCfg();
+  }
+}
+
+function armarTimer(){
+  if(timerAuto){ clearInterval(timerAuto); timerAuto=null; }
+  if(!CFG.int) return;
+  timerAuto=setInterval(function(){
+    if(document.hidden) return;                       // no gastar datos en segundo plano
+    if(R.ts && Date.now()-R.ts < (CFG.int*60000)-5000) return;  // no repetir de más
+    cargar();
+  }, Math.max(MIN_INT,CFG.int)*60000);
+}
+
+/* ══════════════════ tabs / arranque ══════════════════ */
+var TABS=['tasas','pagar','cambiar','gastos','gr','ajustes'];
+function tab(id){
+  TABS.forEach(function(k){
+    $('sec-'+k).hidden = (k!==id);
+    var b=$('nb-'+k); if(b) b.setAttribute('aria-selected', k===id?'true':'false');
+  });
+  if(id==='ajustes') pintarCfg();
+  window.scrollTo(0,0);
+  if(id==='gr'){ cargarBcvHist(); setTimeout(dibujar,30); }
+}
+
+llenarSelects();
+pintarCfg();
+armarTimer();
+pintar();
+cargar();
+
+(function(){
+  var sv=$('chartSvg');
+  ['pointerdown','pointermove','touchstart','touchmove'].forEach(function(ev){
+    sv.addEventListener(ev,function(e){
+      if(ev.indexOf('pointer')===0 && e.pressure===0 && e.type==='pointermove' && e.buttons===0){ desdeEvento(e); return; }
+      desdeEvento(e);
+    },{passive:true});
+  });
+  window.addEventListener('resize',function(){ if(!$('sec-gr').hidden) dibujar(); });
+})();
+
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden && R.ts && Date.now()-R.ts>10*60000) cargar();
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
