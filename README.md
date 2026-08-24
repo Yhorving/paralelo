@@ -15,7 +15,7 @@ Responde tres preguntas:
 | **Tasas** | Cotizaciones del día al estilo monitordolarvzla, brechas y tabla de bolsillo |
 | **Pagar** | Semáforo de sobreprecio, desglose, pago con billetes en efectivo y detector de tasa abusiva |
 | **Cambiar** | La ruta completa: tu moneda → USDT → bolívares, comparada contra las tasas oficiales |
-| **Gastos** | Registro del viaje con el sobreprecio acumulado, exportable a CSV |
+| **Gastos** | Saldo real: compras con su tasa, gastos descontados y sobreprecio acumulado, exportable a CSV |
 | **Gráfico** | Histórico de BCV y P2P con brecha, y proyección |
 
 ## Fuentes
@@ -26,6 +26,8 @@ Responde tres preguntas:
 | BCV histórico | `bcv.today/api/v1/history.json` | ~1.800 días; el euro desde enero 2026 |
 | P2P en bolívares | `criptoya.com/api/usdt/ves` | Binance, Bybit, OKX, Bitget y más |
 | P2P en tu moneda | `criptoya.com/api/usdt/<fiat>` | 13 monedas |
+| Dolar oficial FX | `open.er-api.com` | el mismo USD/xxx que grafica TradingView |
+| Semilla P2P | `seed-p2p.json` | 8 dias de usdt.com.ve (CC BY 4.0), una sola vez |
 
 Todas son gratis, sin llave y con CORS abierto: la app las consulta directo desde el navegador, no hay servidor.
 
@@ -37,6 +39,8 @@ acumula sus propias lecturas: cada vez que la abres guarda la tasa del día.
 
 - **`alta()` vs `bcvAlta()`**: la primera es la más alta de las tres (lo que te cobran); la segunda solo entre
   las oficiales (para medir la brecha). Confundirlas hace que la app se compare contra sí misma.
+- **Costo congelado**: una compra fija tu costo por bolivar. Los gastos se valoran contra esa tasa,
+  no contra la del dia en que gastas, porque comprar y gastar no ocurren juntos.
 - **Avisos**: se disparan al cruzar el umbral, no mientras siga alto, y con una espera mínima entre avisos.
   Solo funcionan con la app abierta: no hay servidor de push.
 - **Auto-refresco**: mínimo 15 minutos y se detiene con la pestaña en segundo plano, para no castigar APIs gratis.

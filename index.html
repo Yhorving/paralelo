@@ -375,15 +375,57 @@ summary:before{content:"\2699  "}
 
   <!-- ═════════ GASTOS ═════════ -->
   <section id="sec-gastos" hidden>
-    <h2>Total del viaje</h2>
+    <h2>Tu saldo</h2>
     <div class="card" style="border-color:rgba(255,197,61,.35)">
-      <div class="lbl">Llevas gastado</div>
-      <div class="big" id="gTotalFiat">—</div>
-      <div class="sub" id="gTotalSub">—</div>
+      <div class="lbl">Bolívares disponibles</div>
+      <div class="big" id="sBs">—</div>
+      <div class="sub" id="sBsSub">—</div>
     </div>
-    <div class="card" id="gResumen"><div class="sub">Todavía no has registrado gastos.</div></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">USDT sin convertir</div>
+        <div class="mid" id="sUsdt">—</div>
+        <div class="sub" id="sUsdtSub">—</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Tu costo real</div>
+        <div class="mid" id="sCosto">—</div>
+        <div class="sub" id="sCostoSub">—</div>
+      </div>
+    </div>
 
-    <h2>Agregar a mano</h2>
+    <h2>Cargar saldo</h2>
+    <div class="card">
+      <div class="sub" style="margin-bottom:12px">
+        Cuando compras. Tu costo queda congelado en la tasa de ese día: lo que gastes después se mide
+        contra esa tasa, no contra la del día en que gastas.
+      </div>
+      <label class="f">
+        <span class="lbl">Puse</span>
+        <div class="inline">
+          <input type="text" id="coMonto" inputmode="decimal" placeholder="0" oninput="prevCompra()">
+          <select id="coFiat" onchange="prevCompra()" style="flex:0 0 110px"></select>
+        </div>
+      </label>
+      <div class="inline">
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl" id="coLblF">Tasa por USDT</span>
+          <input type="text" id="coTasaF" inputmode="decimal" placeholder="0" oninput="prevCompra()">
+        </label>
+        <label class="f" style="margin-bottom:10px">
+          <span class="lbl">Bs por USDT</span>
+          <input type="text" id="coTasaV" inputmode="decimal" placeholder="opcional" oninput="prevCompra()">
+        </label>
+      </div>
+      <div class="hint" style="margin-bottom:12px">
+        Vienen prellenadas con el mercado de hoy — cámbialas por las que realmente te tocaron.
+        Si todavía no pasaste los USDT a bolívares, deja la segunda vacía y la llenas cuando lo hagas.
+      </div>
+      <div id="coPrev" class="card flat" style="margin-bottom:12px"><div class="sub">—</div></div>
+      <button class="icon wide prim" onclick="guardarCompra()">Agregar compra</button>
+    </div>
+
+    <h2>Registrar un gasto</h2>
     <div class="card">
       <div class="inline" style="margin-bottom:10px">
         <label class="f" style="margin:0;flex:1.2">
@@ -402,11 +444,14 @@ summary:before{content:"\2699  "}
       <button class="icon wide prim" onclick="guardarGastoManual()">Agregar gasto</button>
     </div>
 
+    <h2>Resumen del viaje</h2>
+    <div class="card" id="gResumen"><div class="sub">Todavía no has registrado nada.</div></div>
+
     <h2>Movimientos</h2>
     <div class="card" id="gLista"><div class="sub">Sin movimientos.</div></div>
     <div class="inline">
       <button class="icon" onclick="exportarGastos()">Exportar CSV</button>
-      <button class="icon" onclick="borrarGastos()">Borrar todo</button>
+      <button class="icon" onclick="borrarTodo()">Borrar todo</button>
     </div>
   </section>
 
@@ -573,7 +618,8 @@ var MONTOS={clp:[50000,100000,300000,500000,1000000],cop:[200000,500000,1000000,
   dop:[3000,5000,10000,20000,50000],usd:[50,100,300,500,1000],eur:[50,100,300,500,1000]};
 
 /* ══════════════════ estado ══════════════════ */
-var LS_R='paralelo.rates', LS_H='paralelo.hist', LS_B='paralelo.bcvhist', LS_G='paralelo.gastos', LS_F='paralelo.fiat';
+var LS_R='paralelo.rates', LS_H='paralelo.hist', LS_B='paralelo.bcvhist', LS_G='paralelo.gastos',
+    LS_F='paralelo.fiat', LS_CO='paralelo.compras';
 var FIAT = localStorage.getItem(LS_F) || 'clp';
 if(!FIATS[FIAT]) FIAT='clp';
 
@@ -587,6 +633,7 @@ if(R.clpAsk && !R.fiatAsk){ R.fiatAsk=R.clpAsk; R.fiatBid=R.clpBid; R.fiatCode='
 
 var BH = JSON.parse(localStorage.getItem(LS_B)||'null') || {ts:null, rows:[]};
 var GA = JSON.parse(localStorage.getItem(LS_G)||'[]');
+var CO = JSON.parse(localStorage.getItem(LS_CO)||'[]');
 
 function F(){ return FIATS[FIAT]; }
 function nf(n,d){ d=(d==null?2:d);
@@ -640,7 +687,8 @@ function enlazarNum(id){
   });
 }
 var CAMPOS_NUM=['sVes','sUsd','pMonto','tUsd','tVes','tTasa','cMonto','eMonto','eTasaV',
-                'gVes','gTasa','mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk'];
+                'gVes','gTasa','mBcvUsd','mBcvEur','mVesBid','mBybit','mFiatAsk',
+                'coMonto','coTasaF','coTasaV'];
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
@@ -677,9 +725,10 @@ function cargar(){
     js('https://ve.dolarapi.com/v1/euros'),
     js('https://criptoya.com/api/usdt/ves/100'),
     js('https://criptoya.com/api/usdt/'+FIAT+'/100'),
-    js('https://bcv.today/api/v1/rate.json')
+    js('https://bcv.today/api/v1/rate.json'),
+    js('https://open.er-api.com/v6/latest/USD')
   ]).then(function(res){
-    var d=res[0], e=res[1], v=res[2], c=res[3], bt=res[4], fallas=[];
+    var d=res[0], e=res[1], v=res[2], c=res[3], bt=res[4], fx=res[5], fallas=[];
 
     if(d){ var of=d.filter(function(x){return x.fuente==='oficial';})[0];
            var pa=d.filter(function(x){return x.fuente==='paralelo';})[0];
@@ -703,6 +752,12 @@ function cargar(){
            if(cp && (cp.ask||cp.totalAsk)){ R.fiatAsk=cp.totalAsk||cp.ask; R.fiatBid=cp.totalBid||cp.bid;
              R.fiatCode=FIAT; } }
     else fallas.push('P2P '+F().s);
+
+    /* dolar oficial de tu moneda: el mismo dato que grafica TradingView como USDxxx */
+    if(fx && fx.rates){
+      R.fxFiat = fx.rates[F().s] || null;
+      R.fxTs = fx.time_last_update_utc || null;
+    }
 
     if(fallas.length){
       $('errbox').innerHTML='<div class="err">No pude actualizar: '+fallas.join(', ')+
@@ -753,6 +808,7 @@ function llenarSelects(){
     return '<option value="'+k+'"'+(k===FIAT?' selected':'')+'>'+FIATS[k].s+' — '+FIATS[k].n+'</option>'; }).join('');
   $('selFiat').innerHTML=opts;
   $('selFiat2').innerHTML=opts;
+  $('coFiat').innerHTML=opts;
   $('pMoneda').innerHTML='<option value="ves">Bs</option><option value="usd">USD</option>'+
     '<option value="fiat">'+F().s+'</option>';
   $('cDesde').innerHTML='<option value="fiat">'+F().s+'</option><option value="ves">Bs</option>'+
@@ -822,6 +878,16 @@ function pintar(){
   hc+=fila('Tasa efectiva', fb? nf(fb,4):'—', S+' por 1 Bs');
   hc+=fila('1.000 Bs te cuestan', fb? nfiat(1000*fb):'—','');
   hc+=fila('1 USD de poder de compra', R.fiatAsk? nfiat(R.fiatAsk):'—','vía USDT');
+  if(R.fxFiat){
+    hc+=fila('Dólar oficial (FX)', nf(R.fxFiat,F().d)+' '+S,'el mismo USD/'+S+' que grafica TradingView');
+    if(R.fiatAsk){
+      var pr=(R.fiatAsk/R.fxFiat-1)*100;
+      hc+='<div class="row"><div class="k">El USDT contra ese dólar</div><div class="v" style="color:'+
+        (pr>1?'var(--bad)':'var(--good)')+'">'+pct(pr)+'<small>'+
+        (pr>0.3? 'pagas un premio por el USDT' : (pr<-0.3? 'el USDT te sale más barato' : 'prácticamente igual'))+
+        '</small></div></div>';
+    }
+  }
   $('chile').innerHTML=hc;
 
   if(fb&&R.vesBid){
@@ -842,6 +908,12 @@ function pintar(){
     if(v!=null && document.activeElement!==$(id)) setNum(id,v,2);
   });
 
+  if($('coFiat').value!==FIAT) $('coFiat').value=FIAT;
+  if(R.fiatAsk && document.activeElement!==$('coTasaF') && !$('coTasaF').dataset.tocado)
+    setNum('coTasaF',R.fiatAsk,F().d);
+  if(R.vesBid && document.activeElement!==$('coTasaV') && !$('coTasaV').dataset.tocado)
+    setNum('coTasaV',R.vesBid,2);
+  prevCompra();
   calcSema(); calcPagar(); calcEfectivo(); calcTasa(); calcCambio();
   pintarGastos(); pintarGrafico();
   if(!$('sec-ajustes').hidden) pintarCfg();
@@ -1063,7 +1135,11 @@ function calcCambio(){
   co.innerHTML=h;
 }
 
-/* ══════════════════ GASTOS ══════════════════ */
+/* ══════════════════ COMPRAS Y GASTOS ══════════════════ */
+/* El costo se congela al comprar, no al gastar. Una compra guarda cuánto pusiste en tu
+   moneda y a qué tasa; si ya pasaste los USDT a bolívares, también la tasa de esa
+   conversión. Los gastos se descuentan del saldo y se valoran a TU costo, no al del día. */
+
 function pushGasto(ves,tasa,desc){
   if(!isFinite(ves)||ves<=0) return false;
   GA.push({ id:Date.now()+''+Math.round(Math.random()*999), ts:Date.now(), ves:ves,
@@ -1087,71 +1163,183 @@ function borrarGasto(id){
   GA=GA.filter(function(g){return g.id!==id;});
   localStorage.setItem(LS_G,JSON.stringify(GA)); pintarGastos();
 }
-function borrarGastos(){ GA=[]; localStorage.setItem(LS_G,'[]'); pintarGastos(); }
+function borrarCompra(id){
+  CO=CO.filter(function(c){return c.id!==id;});
+  localStorage.setItem(LS_CO,JSON.stringify(CO)); pintarGastos();
+}
+function borrarTodo(){
+  GA=[]; CO=[];
+  localStorage.setItem(LS_G,'[]'); localStorage.setItem(LS_CO,'[]'); pintarGastos();
+}
 
+function prevCompra(){
+  var m=parseNum($('coMonto').value), tf=parseNum($('coTasaF').value), tv=parseNum($('coTasaV').value);
+  var fc=$('coFiat').value, S=FIATS[fc].s, out=$('coPrev');
+  $('coLblF').textContent='Tasa: '+S+' por USDT';
+  if(!isFinite(m)||m<=0||!isFinite(tf)||tf<=0){
+    out.innerHTML='<div class="sub">Pon cuánto pusiste y a qué tasa compraste.</div>'; return null; }
+  var usdt=m/tf, ves=(isFinite(tv)&&tv>0)? usdt*tv : null;
+  var h=fila('Recibes', nf(usdt)+' USDT','a '+nf(tf,FIATS[fc].d)+' '+S+' por USDT');
+  if(ves!=null){
+    h+=fila('Que en bolívares son', n0(ves)+' Bs','a '+nf(tv)+' Bs por USDT');
+    h+=fila('Tu costo queda en', nf(m/ves,4)+' '+S,'por cada bolívar');
+    if(R.vesBid){
+      var d=(tv/R.vesBid-1)*100;
+      h+='<div class="row"><div class="k">Contra el P2P de hoy ('+nf(R.vesBid)+')</div><div class="v" style="color:'+
+        (d<-1?'var(--bad)':'var(--good)')+'">'+pct(d)+'</div></div>';
+    }
+  } else {
+    h+='<div class="hint" style="margin-top:8px">Sin la tasa a bolívares queda como saldo en USDT. '+
+       'Vuelve a cargarla cuando lo conviertas.</div>';
+  }
+  out.innerHTML=h;
+  return {m:m, tf:tf, tv:(isFinite(tv)&&tv>0?tv:null), usdt:usdt, ves:ves, fc:fc};
+}
+
+function guardarCompra(){
+  var p=prevCompra(); if(!p) return;
+  CO.push({ id:Date.now()+''+Math.round(Math.random()*999), ts:Date.now(),
+            fiat:p.fc, montoFiat:p.m, tasaFiat:p.tf, usdt:p.usdt, tasaVes:p.tv, ves:p.ves });
+  localStorage.setItem(LS_CO,JSON.stringify(CO));
+  $('coMonto').value=''; prevCompra(); pintarGastos();
+}
+
+/* base de costo ponderada, solo con las compras hechas en la moneda activa */
+function baseCosto(){
+  var fiatConv=0, vesTot=0, usdtConv=0, fiatTot=0, usdtTot=0, usdtLibre=0, otras=0, n=0;
+  CO.forEach(function(c){
+    if(c.fiat!==FIAT){ otras++; return; }
+    n++; fiatTot+=c.montoFiat; usdtTot+=c.usdt;
+    if(c.ves>0){ fiatConv+=c.montoFiat; vesTot+=c.ves; usdtConv+=c.usdt; }
+    else usdtLibre+=c.usdt;
+  });
+  return {
+    n:n, fiatTot:fiatTot, usdtTot:usdtTot, vesTot:vesTot, usdtLibre:usdtLibre, otras:otras,
+    costoPorBs:   vesTot>0?   fiatConv/vesTot : null,
+    costoPorUsdt: usdtTot>0?  fiatTot/usdtTot : null,
+    tasaVes:      usdtConv>0? vesTot/usdtConv : null
+  };
+}
+
+/* un gasto valorado a TU costo; si todavía no hay compras, cae al mercado del día */
 function calcGasto(g){
-  var bid=g.vesBid||R.vesBid, ask=g.fiatAsk||R.fiatAsk;
+  var B=baseCosto();
+  var bid = B.tasaVes || g.vesBid || R.vesBid;
+  var porBs = B.costoPorBs;
+  if(porBs==null){ var ask=g.fiatAsk||R.fiatAsk; porBs=(bid&&ask)? ask/bid : null; }
   var usd = bid? g.ves/bid : null;
-  var fia = (bid&&ask)? g.ves*(ask/bid) : null;
+  var fia = (porBs!=null)? g.ves*porBs : null;
   var sobreVes=null, sobreUsd=null;
-  if(g.tasa && bid){ sobreVes = g.ves*(1 - bid/g.tasa); sobreUsd = sobreVes/bid; }
-  return {usd:usd, fia:fia, fiatCode:g.fiat||FIAT, sobreVes:sobreVes, sobreUsd:sobreUsd};
+  if(g.tasa && bid){ sobreVes=g.ves*(1-bid/g.tasa); sobreUsd=sobreVes/bid; }
+  return {usd:usd, fia:fia, fiatCode:(B.costoPorBs!=null?FIAT:(g.fiat||FIAT)),
+          sobreVes:sobreVes, sobreUsd:sobreUsd, propia:B.costoPorBs!=null};
 }
 
 function pintarGastos(){
-  if(!GA.length){
-    $('gTotalFiat').textContent='—';
-    $('gTotalSub').textContent='Registra tus pagos desde el semáforo y se van sumando aquí.';
-    $('gResumen').innerHTML='<div class="sub">Todavía no has registrado gastos.</div>';
+  var B=baseCosto();
+  var gastadoVes=0, tUsd=0, tFia=0, tSobreU=0, tSobreV=0, nCon=0;
+  GA.forEach(function(g){ var c=calcGasto(g);
+    gastadoVes+=g.ves; if(c.usd) tUsd+=c.usd; if(c.fia) tFia+=c.fia;
+    if(c.sobreUsd!=null){ tSobreU+=c.sobreUsd; tSobreV+=c.sobreVes; nCon++; } });
+  var saldoVes=B.vesTot-gastadoVes;
+
+  if(B.vesTot>0 || B.usdtLibre>0){
+    $('sBs').textContent = n0(saldoVes)+' Bs';
+    $('sBsSub').innerHTML = 'De '+n0(B.vesTot)+' Bs cargados llevas gastados '+n0(gastadoVes)+'. '+
+      (B.costoPorBs!=null? 'Lo que queda te costó '+nfiat(Math.max(0,saldoVes)*B.costoPorBs)+'.' : '')+
+      (saldoVes<0? ' <span style="color:var(--bad)">Gastaste más de lo que registraste como comprado.</span>':'');
+    $('sUsdt').textContent = nf(B.usdtLibre)+' USDT';
+    $('sUsdtSub').textContent = B.usdtLibre>0
+      ? (R.vesBid? 'valen '+n0(B.usdtLibre*R.vesBid)+' Bs al P2P de hoy' : 'sin convertir')
+      : 'todo convertido a bolívares';
+    $('sCosto').textContent = B.costoPorBs!=null? nf(B.costoPorBs,4)+' '+F().s : '—';
+    if(B.tasaVes && R.vesBid){
+      var dif=(B.tasaVes/R.vesBid-1)*100;
+      $('sCostoSub').innerHTML='por Bs · compraste a '+nf(B.tasaVes)+' Bs/USD, '+
+        '<span style="color:'+(dif>=0?'var(--good)':'var(--bad)')+'">'+pct(dif)+'</span> vs hoy';
+    } else $('sCostoSub').textContent = B.costoPorBs!=null? 'por bolívar' : 'carga una compra';
+  } else {
+    $('sBs').textContent='—';
+    $('sBsSub').textContent='Carga una compra y la app lleva tu saldo y tu costo real.';
+    $('sUsdt').textContent='—'; $('sUsdtSub').textContent='—';
+    $('sCosto').textContent='—'; $('sCostoSub').textContent='—';
+  }
+
+  if(!GA.length && !CO.length){
+    $('gResumen').innerHTML='<div class="sub">Todavía no has registrado nada.</div>';
     $('gLista').innerHTML='<div class="sub">Sin movimientos.</div>';
     return;
   }
-  var tVes=0,tUsd=0,tFia=0,tSobreU=0,tSobreV=0,nCon=0;
-  GA.forEach(function(g){ var c=calcGasto(g);
-    tVes+=g.ves; if(c.usd) tUsd+=c.usd; if(c.fia) tFia+=c.fia;
-    if(c.sobreUsd!=null){ tSobreU+=c.sobreUsd; tSobreV+=c.sobreVes; nCon++; } });
-
-  $('gTotalFiat').textContent = tFia? nfiat(tFia) : nf(tUsd)+' USD';
-  $('gTotalSub').textContent = GA.length+' movimiento'+(GA.length>1?'s':'')+' · '+
-    n0(tVes)+' Bs · '+nf(tUsd)+' USD reales';
 
   var h='';
-  h+=fila('Total en bolívares', n0(tVes)+' Bs','');
-  h+=fila('Total en dólares reales', nf(tUsd)+' USD','a tu tasa P2P de cada día');
-  if(tFia) h+=fila('Total en '+F().n.toLowerCase(), nfiat(tFia),'');
-  if(nCon){
-    h+='<div class="row"><div class="k">Sobreprecio acumulado</div><div class="v" style="color:'+
-      (tSobreU>0.01?'var(--bad)':'var(--good)')+'">'+nf(tSobreU)+' USD<small>'+n0(tSobreV)+
-      ' Bs · sobre '+nCon+' cobro'+(nCon>1?'s':'')+' con tasa registrada</small></div></div>';
-    h+=fila('Promedio de sobreprecio', pct(tUsd? (tSobreU/(tUsd-tSobreU))*100 : null),'');
-  } else {
-    h+='<div class="hint" style="margin-top:8px">Anota la tasa que te aplicaron en cada gasto para ver cuánto te sobrecobraron en total.</div>';
+  if(B.fiatTot>0){
+    h+=fila('Compraste', nfiat(B.fiatTot), nf(B.usdtTot)+' USDT en '+B.n+' compra'+(B.n>1?'s':''));
+    if(B.costoPorUsdt) h+=fila('Costo por USDT', nf(B.costoPorUsdt,F().d)+' '+F().s,'promedio ponderado');
+    if(B.tasaVes) h+=fila('Tu tasa Bs/USD', nf(B.tasaVes)+' Bs',
+      R.vesBid? 'el mercado hoy está en '+nf(R.vesBid) : '');
   }
+  if(GA.length){
+    h+=fila('Gastado', n0(gastadoVes)+' Bs', nf(tUsd)+' USD · '+(tFia?nfiat(tFia):'—'));
+    if(nCon){
+      h+='<div class="row"><div class="k">Sobreprecio acumulado</div><div class="v" style="color:'+
+        (tSobreU>0.01?'var(--bad)':'var(--good)')+'">'+nf(tSobreU)+' USD<small>'+n0(tSobreV)+
+        ' Bs · sobre '+nCon+' cobro'+(nCon>1?'s':'')+' con tasa anotada</small></div></div>';
+      h+=fila('Promedio de sobreprecio', pct(tUsd? (tSobreU/(tUsd-tSobreU))*100 : null),'');
+    } else {
+      h+='<div class="hint" style="margin-top:8px">Anota la tasa que te aplicaron en cada gasto '+
+         'para ver cuánto te sobrecobraron en total.</div>';
+    }
+  }
+  if(B.otras) h+='<div class="hint" style="margin-top:8px">Hay '+B.otras+' compra(s) en otra moneda; '+
+    'no entran en estos totales. Cambia la moneda activa para verlas.</div>';
   $('gResumen').innerHTML=h;
 
-  $('gLista').innerHTML = GA.slice().reverse().map(function(g){
-    var c=calcGasto(g), fecha=new Date(g.ts).toLocaleDateString('es-CL',{day:'2-digit',month:'short'});
-    var hora=new Date(g.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-    var meta=fecha+' '+hora + (g.tasa?' · tasa '+nf(g.tasa):'') +
-      (c.sobreUsd>0.005?' · <span style="color:var(--bad)">+'+nf(c.sobreUsd)+' USD de más</span>':'');
-    return '<div class="gitem"><div class="gd"><div class="gn">'+
-      (g.desc?esc(g.desc):'Gasto')+'</div><div class="gm">'+meta+'</div></div>'+
-      '<div class="gv"><b>'+n0(g.ves)+' Bs</b><small>'+
-      (c.fia?nf(c.fia,FIATS[c.fiatCode].d)+' '+FIATS[c.fiatCode].s:nf(c.usd)+' USD')+'</small></div>'+
-      '<button class="gx" onclick="borrarGasto(\''+g.id+'\')">&times;</button></div>';
+  var mov=CO.map(function(c){ return {t:'c',ts:c.ts,o:c}; })
+      .concat(GA.map(function(g){ return {t:'g',ts:g.ts,o:g}; }))
+      .sort(function(a,b){ return b.ts-a.ts; });
+
+  $('gLista').innerHTML = mov.map(function(x){
+    var f=new Date(x.ts), fecha=f.toLocaleDateString('es-CL',{day:'2-digit',month:'short'});
+    var hora=f.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+    if(x.t==='c'){
+      var c=x.o, S=FIATS[c.fiat].s;
+      var meta=fecha+' '+hora+' · '+nf(c.tasaFiat,FIATS[c.fiat].d)+' '+S+'/USDT'+
+        (c.tasaVes? ' · '+nf(c.tasaVes)+' Bs/USD' : ' · sin convertir');
+      return '<div class="gitem"><div class="gd">'+
+        '<div class="gn" style="color:var(--good)">&darr; Compra</div>'+
+        '<div class="gm">'+meta+'</div></div>'+
+        '<div class="gv"><b style="color:var(--good)">+'+
+        (c.ves? n0(c.ves)+' Bs' : nf(c.usdt)+' USDT')+'</b><small>'+
+        nf(c.montoFiat,FIATS[c.fiat].d)+' '+S+'</small></div>'+
+        '<button class="gx" onclick="borrarCompra(\'' + c.id + '\')">&times;</button></div>';
+    }
+    var g=x.o, cg=calcGasto(g);
+    var m2=fecha+' '+hora+(g.tasa?' · tasa '+nf(g.tasa):'')+
+      (cg.sobreUsd>0.005?' · <span style="color:var(--bad)">+'+nf(cg.sobreUsd)+' USD de más</span>':'');
+    return '<div class="gitem"><div class="gd"><div class="gn">'+(g.desc?esc(g.desc):'Gasto')+
+      '</div><div class="gm">'+m2+'</div></div>'+
+      '<div class="gv"><b>-'+n0(g.ves)+' Bs</b><small>'+
+      (cg.fia!=null? nf(cg.fia,FIATS[cg.fiatCode].d)+' '+FIATS[cg.fiatCode].s : nf(cg.usd)+' USD')+
+      '</small></div>'+
+      '<button class="gx" onclick="borrarGasto(\'' + g.id + '\')">&times;</button></div>';
   }).join('');
 }
 
 function exportarGastos(){
-  if(!GA.length) return;
-  var l=['fecha,descripcion,bolivares,tasa_aplicada,usd_real,moneda,monto_moneda,sobreprecio_usd'];
+  if(!GA.length && !CO.length) return;
+  var l=['tipo,fecha,descripcion,bolivares,usdt,monto_moneda,moneda,tasa_compra,tasa_bs_usd,tasa_aplicada,usd_real,sobreprecio_usd'];
+  CO.forEach(function(c){
+    l.push(['compra', new Date(c.ts).toISOString(), '"carga de saldo"', c.ves||'', c.usdt.toFixed(4),
+      c.montoFiat, (c.fiat||'').toUpperCase(), c.tasaFiat, c.tasaVes||'', '', '', ''].join(','));
+  });
   GA.forEach(function(g){ var c=calcGasto(g);
-    l.push([new Date(g.ts).toISOString(), '"'+(g.desc||'').replace(/"/g,'""')+'"',
-      g.ves, g.tasa||'', c.usd?c.usd.toFixed(4):'', (c.fiatCode||'').toUpperCase(),
-      c.fia?c.fia.toFixed(2):'', c.sobreUsd!=null?c.sobreUsd.toFixed(4):''].join(',')); });
+    l.push(['gasto', new Date(g.ts).toISOString(), '"'+(g.desc||'').replace(/"/g,'""')+'"',
+      g.ves, '', c.fia?c.fia.toFixed(2):'', (c.fiatCode||'').toUpperCase(), '', '',
+      g.tasa||'', c.usd?c.usd.toFixed(4):'', c.sobreUsd!=null?c.sobreUsd.toFixed(4):''].join(','));
+  });
   var b=new Blob([l.join('\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');
-  a.href=URL.createObjectURL(b); a.download='gastos-venezuela.csv';
+  a.href=URL.createObjectURL(b); a.download='viaje-venezuela.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
 }
@@ -1531,6 +1719,9 @@ function tab(id){
 
 llenarSelects();
 CAMPOS_NUM.forEach(enlazarNum);
+['coTasaF','coTasaV'].forEach(function(id){
+  $(id).addEventListener('input',function(){ this.dataset.tocado='1'; });
+});
 pintarCfg();
 armarTimer();
 pintar();
