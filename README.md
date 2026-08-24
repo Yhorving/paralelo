@@ -50,6 +50,11 @@ sus propias lecturas, que siempre pisan a la semilla.
 
 ## Notas de diseño
 
+- **Los comercios cobran con la BCV más alta**, dólar o euro, no con las paralelas (reportado por gente que
+  vive allá). Las paralelas y el P2P quedan como referencia de cuánto vale tu dinero, no como tasas de cobro.
+  Configurable en Ajustes, pero el valor útil es la identificación automática.
+- **Identificar la tasa, no solo medirla**: frente al vendedor sirve el nombre, no el porcentaje. Con el precio
+  en dólares la app compara la tasa aplicada contra todas las publicadas y dice cuál es, o que no es ninguna.
 - **Una sola entrada en Pagar**: antes el monto se pedía tres veces (semáforo, desglose y detector) y las
   tres hacían la misma cuenta. Ahora un campo alimenta todo; el precio en USD es opcional y desbloquea el
   análisis de la tasa. El pago con billetes sigue aparte porque es otra pregunta: ahí el problema es el vuelto.

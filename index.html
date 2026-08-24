@@ -646,6 +646,24 @@ summary:before{content:"\2699  "}
         <div class="v" id="cfLast" style="font-size:13px">nunca</div></div>
     </div>
 
+    <h2>Tasa oficial de referencia</h2>
+    <div class="card">
+      <label class="f">
+        <span class="lbl">¿Con cuál esperas que te cobren?</span>
+        <select id="cfRef" onchange="guardarRef()">
+          <option value="auto">La más alta del BCV (lo habitual)</option>
+          <option value="usd">Siempre BCV Dólar</option>
+          <option value="eur">Siempre BCV Euro</option>
+        </select>
+      </label>
+      <div class="hint">
+        Cambia contra qué se mide tu descuento y el semáforo. Déjalo en automático si no sabes:
+        la app usa la más alta entre dólar y euro, que es con la que suelen cobrar.
+        Igual, cuando pones el precio en dólares la app <b>identifica sola</b> qué tasa te aplicaron
+        y te dice su nombre.
+      </div>
+    </div>
+
     <h2>Modo</h2>
     <div class="card">
       <label class="f">
@@ -787,13 +805,12 @@ var CAMPOS_NUM=['xMonto','xPrecio','xTasa','cMonto','eMonto','eTasaV',
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
+/* Los comercios cobran con la más alta de las DOS oficiales del BCV, dólar o euro.
+   Las paralelas y el P2P no son tasas de cobro: son referencia de cuánto vale tu dinero. */
 function candidatas(){
   var c=[];
-  if(R.bcvUsd)      c.push({n:'BCV Dólar',     v:R.bcvUsd,      k:'usd'});
-  if(R.bcvEur)      c.push({n:'BCV Euro',      v:R.bcvEur,      k:'eur'});
-  if(R.paralelo)    c.push({n:'Dólar paralelo',v:R.paralelo,    k:'usdp'});
-  if(R.paraleloEur) c.push({n:'Euro paralelo', v:R.paraleloEur, k:'eurp'});
-  if(R.vesBid)      c.push({n:'Binance P2P',   v:R.vesBid,      k:'p2p'});
+  if(R.bcvUsd) c.push({n:'BCV Dólar', v:R.bcvUsd, k:'usd'});
+  if(R.bcvEur) c.push({n:'BCV Euro',  v:R.bcvEur, k:'eur'});
   return c;
 }
 /* el euro cotiza por EURO, no por dolar. Para comparar contra un precio en USD
@@ -803,9 +820,14 @@ function alta(){ var c=candidatas(); if(!c.length) return null;
   return c.reduce(function(a,b){return b.v>a.v?b:a;}); }
 /* la más alta SOLO entre las oficiales: referencia para medir la brecha */
 function bcvAlta(){
-  var a=R.bcvUsd||0, b=R.bcvEur||0, m=Math.max(a,b);
-  return m>0? {n:(b>a?'BCV Euro':'BCV Dólar'), v:m} : null;
+  var a=R.bcvUsd||0, b=R.bcvEur||0;
+  var pref=localStorage.getItem('paralelo.ref')||'auto';
+  if(pref==='usd' && a) return {n:'BCV Dólar', v:a, k:'usd'};
+  if(pref==='eur' && b) return {n:'BCV Euro',  v:b, k:'eur'};
+  var m=Math.max(a,b);
+  return m>0? {n:(b>a?'BCV Euro':'BCV Dólar'), v:m, k:(b>a?'eur':'usd')} : null;
 }
+function guardarRef(){ localStorage.setItem('paralelo.ref',$('cfRef').value); pintar(); }
 function promedioMonitor(){
   var xs=[R.bcvUsd,R.vesBid,R.bybit].filter(function(x){return x>0;});
   return xs.length? xs.reduce(function(a,b){return a+b;},0)/xs.length : null;
@@ -935,17 +957,23 @@ function pintar(){
 
   /* Ventaja legal: el comercio debe facturar a BCV, pero tus bolivares te costaron a tasa P2P */
   if(R.bcvUsd && R.vesBid){
-    var ven=(1-R.bcvUsd/R.vesBid)*100, por100=100*R.bcvUsd/R.vesBid;
-    $('venPct').textContent=pct(ven);
-    $('venSub').innerHTML='Un precio de <b>100 USD</b> facturado a BCV son '+n0(100*R.bcvUsd)+
-      ' Bs, y esos bolívares te costaron <b>'+nf(por100)+' USD</b>. Te ahorras '+nf(100-por100)+' USD.';
-    var hv='';
-    hv+=fila('Tasa legal de facturación', nf(R.bcvUsd)+' Bs','BCV Dólar del día');
-    hv+=fila('Lo que te costó cada bolívar', nf(R.vesBid)+' Bs por USD','tu tasa P2P');
-    var fbv=fiatPorBs();
-    if(fbv) hv+=fila('100 USD de compra te salen en', nfiat(100*R.bcvUsd*fbv),'pagando en bolívares');
-    hv+='<div class="row"><div class="k">Si en cambio te cobran en efectivo USD</div>'+
+    var BAv=bcvAlta(), bcvHab=BAv?BAv.v:R.bcvUsd;
+    var venHab=(1-bcvHab/R.vesBid)*100, venMax=(1-R.bcvUsd/R.vesBid)*100;
+    $('venPct').textContent=pct(venHab);
+    $('venSub').innerHTML='Es lo que te ahorras cuando cobran con la BCV más alta ('+BAv.n+', '+
+      nf(bcvHab)+'), que es lo habitual. Si te facturan a BCV Dólar el ahorro sube a <b>'+
+      pct(venMax)+'</b>.';
+    var hv='', fbv=fiatPorBs();
+    hv+='<div class="row"><div class="k">Lo habitual: '+BAv.n+' '+nf(bcvHab)+'</div>'+
+        '<div class="v" style="color:var(--good)">'+nf(100*bcvHab/R.vesBid)+' USD'+
+        '<small>por 100 USD de compra · ahorras '+nf(100-100*bcvHab/R.vesBid)+'</small></div></div>';
+    if(BAv.k!=='usd') hv+='<div class="row"><div class="k">El mejor caso: BCV Dólar '+nf(R.bcvUsd)+'</div>'+
+        '<div class="v" style="color:var(--good)">'+nf(100*R.bcvUsd/R.vesBid)+' USD'+
+        '<small>ahorras '+nf(100-100*R.bcvUsd/R.vesBid)+'</small></div></div>';
+    hv+='<div class="row"><div class="k">Pagando en efectivo USD</div>'+
         '<div class="v" style="color:var(--bad)">100,00 USD<small>pierdes la ventaja completa</small></div></div>';
+    hv+=fila('Lo que te costó cada bolívar', nf(R.vesBid)+' Bs por USD','tu tasa P2P');
+    if(fbv) hv+=fila('100 USD de compra te salen en', nfiat(100*bcvHab*fbv),'a la BCV habitual');
     $('venDet').innerHTML=hv;
   } else { $('venPct').textContent='—'; $('venSub').textContent='—'; }
 
@@ -954,14 +982,12 @@ function pintar(){
   $('altaCual').textContent = A? A.n : '—';
   if(A && R.vesBid){
     var golpe=(A.v/R.vesBid-1)*100;
-    var C=candidatas();
-    $('altaTit').textContent='La más alta de las '+(C.length===5?'cinco':C.length);
-    $('altaSub').innerHTML='De las '+C.length+' referencias que se publican ('+
-      C.map(function(x){return x.n;}).join(', ')+'), hoy la más alta es <b>'+A.n+
-      '</b>. Es la que van a querer aplicarte.<br>'+
-      ((A.k==='eurp'||A.k==='eur')&&R.eurUsd
-        ? 'Ojo: esa es una tasa <b>por euro</b>. Si te la aplican a un precio en dólares, te están '+
-          'cobrando como si tus dólares fueran euros.<br>' : '')+
+    $('altaTit').textContent='La BCV más alta';
+    $('altaSub').innerHTML='Entre las dos oficiales del BCV, hoy manda el <b>'+A.n+'</b> ('+nf(A.v)+
+      ' contra '+nf(A.k==='eur'?R.bcvUsd:R.bcvEur)+'). Es la que aplican los comercios.<br>'+
+      (A.k==='eur'
+        ? 'Es una tasa <b>por euro</b> aplicada a precios en dólares: por eso te sale '+
+          pct((R.bcvEur/R.bcvUsd-1)*100)+' más cara que el BCV Dólar.<br>' : '')+
       (golpe>0.5
         ? '<span style="color:var(--bad)">Cobrarte a esa tasa te sale '+pct(golpe)+' más caro que tu tasa real de Binance.</span>'
         : (golpe<-0.5
@@ -969,7 +995,7 @@ function pintar(){
           : '<span style="color:var(--good)">Hoy coincide con tu tasa real de Binance, así que cobrarte a esa tasa no te quita nada.</span>'));
   } else $('altaSub').textContent='—';
 
-  var prom=promedioMonitor(), maxV=A?A.v:0;
+  var prom=promedioMonitor(), maxV=A?A.v:0;   /* la marca 'la alta' es solo entre las dos del BCV */
   var eqEurP=eurEnUsd(R.paraleloEur), eqEurB=eurEnUsd(R.bcvEur);
   var filas=[
     {n:'Dólar BCV',      e:'oficial',                    v:R.bcvUsd,      c:'#e5e7eb'},
@@ -1088,6 +1114,34 @@ function aplicarManual(){
    y las tres hacían la misma cuenta. El patrón es el BCV, que es lo que la ley exige
    facturar; la tasa P2P propia queda como segundo umbral, donde ya se pierde plata. */
 
+/* Estando frente al vendedor lo util no es un porcentaje sino el nombre:
+   "esa es la BCV Euro". Compara la tasa aplicada contra todas las publicadas. */
+function identificarTasa(t){
+  if(!t||!isFinite(t)) return null;
+  var refs=[];
+  if(R.bcvUsd)      refs.push({n:'BCV Dólar',            v:R.bcvUsd,      of:1});
+  if(R.bcvEur)      refs.push({n:'BCV Euro',             v:R.bcvEur,      of:1});
+  if(R.paralelo)    refs.push({n:'dólar paralelo',       v:R.paralelo});
+  if(R.paraleloEur) refs.push({n:'euro paralelo',        v:R.paraleloEur});
+  if(R.vesBid)      refs.push({n:'Binance P2P',          v:R.vesBid});
+  if(R.bybit)       refs.push({n:'Bybit P2P',            v:R.bybit});
+  var prom=promedioMonitor(); if(prom) refs.push({n:'promedio del monitor', v:prom});
+  if(!refs.length) return null;
+  var best=null;
+  refs.forEach(function(r){ var d=Math.abs(t/r.v-1)*100; if(!best||d<best.d) best={r:r,d:d}; });
+  if(best.d<=0.6) return {exacta:true, n:best.r.n, of:!!best.r.of};
+  var abajo=refs.filter(function(r){return r.v<=t;}).sort(function(a,b){return b.v-a.v;})[0];
+  return {exacta:false, n:abajo?abajo.n:null, v:abajo?abajo.v:null,
+          d:abajo?(t/abajo.v-1)*100:null, cercaN:best.r.n, cercaD:(t/best.r.v-1)*100};
+}
+function textoIdent(id){
+  if(!id) return '';
+  if(id.exacta) return '<span class="tag '+(id.of?'t-ok':'t-warn')+'">es la '+id.n+'</span>';
+  if(id.n) return '<span class="tag t-hot">no es ninguna publicada</span> '+
+    pct(id.d)+' sobre la '+id.n;
+  return '<span class="tag t-hot">no es ninguna publicada</span>';
+}
+
 function chipsPago(){
   var mon=$('xMon')?$('xMon').value:'ves';
   var v = mon==='ves'? [100,500,1000,5000,10000]
@@ -1130,26 +1184,46 @@ function calcPago(src){
 
   /* ── semáforo ── */
   if(hayPrecio && bcv){
-    var dLegal=(tsa/bcv-1)*100, vesLegal=pre*bcv, costoLegal=vesLegal/R.vesBid, pierdes=usd-costoLegal;
+    /* tres niveles: BCV Dolar es lo mejor, la BCV mas alta es lo habitual alla,
+       y tu tasa P2P es el punto donde ya pierdes plata */
+    var BA=bcvAlta(), bcvA=BA?BA.v:bcv;
+    var dHab=(tsa/bcvA-1)*100;
+    var vesU=pre*bcv, vesA=pre*bcvA;
+    var ahorro=pre-usd;
+    var ident=identificarTasa(tsa);
     var cls,tit,extra;
-    if(dLegal<=2){
-      cls='s-good'; tit='TASA CORRECTA';
-      extra='Te facturan al BCV, como manda la ley. Pagando en bolívares te sale en <b>'+nf(usd)+
-            ' USD</b> en vez de los '+nf(pre)+' del precio: te ahorras '+nf(pre-usd)+' USD.';
+    /* si la tasa coincide con una publicada, el titulo la nombra: es mas util
+       que una banda, sobre todo cuando cae cerca de dos referencias distintas */
+    if(ident && ident.exacta && !ident.of){
+      cls = tsa<=R.vesBid? 's-warn' : 's-bad';
+      tit = 'TASA NO OFICIAL';
+      extra='Te están cobrando con el <b>'+ident.n+'</b>, que no es una tasa de facturación. '+
+            'A la BCV más alta ('+nf(bcvA)+') serían '+n0(vesA)+' Bs y a BCV Dólar '+n0(vesU)+'. '+
+            (tsa<=R.vesBid? 'Aún pagas menos que en efectivo, pero puedes pedir factura a tasa BCV.'
+                          : 'Además está por encima de lo que te costaron tus bolívares.');
+    } else if(tsa<=bcv*1.02){
+      cls='s-good'; tit='BCV DÓLAR, EL MEJOR CASO';
+      extra='Te facturan a la más baja de las dos oficiales. Pagas <b>'+nf(usd)+' USD</b> por algo de '+
+            nf(pre)+': te ahorras '+nf(ahorro)+' USD.';
+    } else if(tsa<=bcvA*1.02){
+      cls='s-good'; tit='TASA BCV, LA HABITUAL';
+      extra='Es la BCV más alta ('+BA.n+'), que es con la que suelen cobrar. Pagas <b>'+nf(usd)+
+            ' USD</b> por algo de '+nf(pre)+': aún te ahorras '+nf(ahorro)+' USD. '+
+            'A BCV Dólar te habrían cobrado '+n0(vesU)+' Bs, '+nf((ves-vesU)/R.vesBid)+' USD menos.';
     } else if(tsa<=R.vesBid){
       cls='s-warn'; tit='POR ENCIMA DEL BCV';
-      extra='Deberían cobrarte <b>'+n0(vesLegal)+' Bs</b> y te cobran '+n0(ves)+'. Sigues pagando menos '+
-            'que en efectivo, pero pierdes <b>'+nf(pierdes)+' USD</b> de tu descuento. Puedes pedir que '+
-            'te lo facturen a la tasa del BCV.';
+      extra='Se pasaron incluso de la BCV más alta ('+nf(bcvA)+'), que sería '+n0(vesA)+' Bs. '+
+            'Sigues pagando menos que en efectivo, pero puedes pedir que te lo facturen a tasa BCV.';
     } else {
       cls='s-bad'; tit='ABUSIVO';
-      extra='Está por encima del BCV <i>y</i> de lo que te costaron tus bolívares. Deberían cobrarte <b>'+
-            n0(vesLegal)+' Bs</b>: te cobran '+n0(ves)+', o sea <b>'+nf(pierdes)+' USD de más</b>.';
+      extra='Está por encima de cualquier BCV <i>y</i> de lo que te costaron tus bolívares. '+
+            'A la BCV más alta serían <b>'+n0(vesA)+' Bs</b>: te cobran '+n0(ves)+', o sea <b>'+
+            nf((ves-vesA)/R.vesBid)+' USD de más</b>.';
     }
     sema.innerHTML='<div class="sema '+cls+'"><div class="st">'+tit+'</div>'+
-      '<div class="sp">'+pct(dLegal)+'</div>'+
-      '<div class="ss">sobre la tasa BCV de '+nf(bcv)+'<br>Te aplican <b>'+nf(tsa)+'</b> Bs/USD.<br>'+
-      extra+'</div></div>';
+      '<div class="sp">'+pct(dHab)+'</div>'+
+      '<div class="ss">sobre la BCV más alta ('+nf(bcvA)+')<br>Te aplican <b>'+nf(tsa)+'</b> Bs/USD '+
+      textoIdent(ident)+'<br>'+extra+'</div></div>';
   } else {
     var equiv = bcv? ves/bcv : null;
     sema.innerHTML='<div class="sema s-idle" style="border-color:rgba(255,197,61,.4)">'+
@@ -1172,7 +1246,13 @@ function calcPago(src){
 
   if(hayPrecio){
     var dP2P=(tsa/R.vesBid-1)*100, A=alta();
+    var idt=identificarTasa(tsa);
     h+='<div class="card"><div class="lbl" style="margin-bottom:8px">La tasa que te aplican: '+nf(tsa)+' Bs</div>';
+    h+='<div class="row"><div class="k">¿Qué tasa es?</div><div class="v" style="font-size:13px;white-space:normal">'+
+       (idt? (idt.exacta? 'Es la <b>'+idt.n+'</b>'
+            : (idt.n? 'Ninguna. Queda '+pct(idt.d)+' sobre la '+idt.n
+                    : 'No coincide con ninguna publicada'))
+           : '—')+'</div></div>';
     if(bcv) h+='<div class="row"><div class="k">vs BCV Dólar '+nf(bcv)+'</div><div class="v" style="color:'+
       ((tsa/bcv-1)*100>2?'var(--bad)':'var(--good)')+'">'+pct((tsa/bcv-1)*100)+
       '<small>la tasa que la ley les exige</small></div></div>';
@@ -1788,6 +1868,7 @@ function guardarCfg(){
 }
 
 function pintarCfg(){
+  $('cfRef').value=localStorage.getItem('paralelo.ref')||'auto';
   $('cfInt').value=CFG.int; $('cfNoti').value=CFG.noti;
   $('cfUp').value=CFG.up; $('cfDn').value=CFG.dn; $('cfGap').value=CFG.gap; $('cfCool').value=CFG.cool;
   $('cfUlt').textContent = R.ts? new Date(R.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}) : '—';
