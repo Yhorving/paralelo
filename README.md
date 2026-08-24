@@ -42,6 +42,10 @@ sus propias lecturas, que siempre pisan a la semilla.
 
 ## Notas de diseño
 
+- **El patrón es el BCV, no tu tasa P2P**: el semáforo y el detector miden contra el BCV, porque es la tasa
+  que la ley exige facturar. Medir contra la propia tasa P2P haría pasar por "justo" un cobro a 935 que
+  legalmente debe ser 784 — que es exactamente donde se pierde el descuento de pagar en bolívares. La tasa
+  P2P sigue apareciendo, pero como segundo umbral: por encima de ella ya se pierde plata de verdad.
 - **`alta()` vs `bcvAlta()`**: la primera es la más alta de las tres (lo que te cobran); la segunda solo entre
   las oficiales (para medir la brecha). Confundirlas hace que la app se compare contra sí misma.
 - **Euro paralelo**: existe y se publica, pero no es un mercado aparte — no hay libro de órdenes EUR/VES con
